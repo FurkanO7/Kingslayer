@@ -11,8 +11,8 @@ public class PlayerShooter : MonoBehaviour
     [SerializeField] private Projectile projectilePrefab;
 
     [Header("Shot Settings")]
-    [SerializeField] private float projectileSpeed = 30f;
-    [SerializeField] private float shotCooldown = 0.15f;
+    [SerializeField] private float projectileSpeed = 70f;
+    [SerializeField] private float shotCooldown = 0.5f;
     [SerializeField] private float spawnDistanceFromCamera = 0.5f;
 
     private float nextShotTime;

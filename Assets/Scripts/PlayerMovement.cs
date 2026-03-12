@@ -8,16 +8,18 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private InputActionReference moveAction;
     [SerializeField] private InputActionReference lookAction;
     [SerializeField] private InputActionReference jumpAction;
+    [SerializeField] private InputActionReference slowAction;
 
     [Header("View")]
     [SerializeField] private Transform cameraTransform;
-    [SerializeField] private float lookSensitivity = 0.1f;
+    [SerializeField] private float lookSensitivity = 0.05f;
     [SerializeField] private float minPitch = -85f;
     [SerializeField] private float maxPitch = 85f;
     [SerializeField] private bool lockCursor = true;
 
     [Header("Movement")]
     [SerializeField] private float moveSpeed = 6f;
+    [SerializeField] private float shiftSlowMultiplier = 0.5f;
     [SerializeField] private float jumpForce = 9f;
     [SerializeField] private float fallGravityMultiplier = 5f;
     [SerializeField] private float riseGravityMultiplier = 2.5f;
@@ -74,6 +76,11 @@ public class PlayerMovement : MonoBehaviour
             jumpAction.action.Enable();
             jumpAction.action.performed += OnJumpPerformed;
         }
+
+        if (slowAction != null)
+        {
+            slowAction.action.Enable();
+        }
     }
 
     private void OnDisable()
@@ -100,6 +107,11 @@ public class PlayerMovement : MonoBehaviour
             jumpAction.action.performed -= OnJumpPerformed;
             jumpAction.action.Disable();
         }
+
+        if (slowAction != null)
+        {
+            slowAction.action.Disable();
+        }
     }
 
     private void Update()
@@ -120,7 +132,9 @@ public class PlayerMovement : MonoBehaviour
         flatRight.Normalize();
 
         Vector3 moveDir = (flatRight * moveInput.x + flatForward * moveInput.y).normalized;
-        Vector3 targetVelocity = moveDir * moveSpeed;
+        bool slowHeld = slowAction != null && slowAction.action.IsPressed();
+        float currentMoveSpeed = slowHeld ? moveSpeed * shiftSlowMultiplier : moveSpeed;
+        Vector3 targetVelocity = moveDir * currentMoveSpeed;
 
         rb.linearVelocity = new Vector3(targetVelocity.x, rb.linearVelocity.y, targetVelocity.z);
 

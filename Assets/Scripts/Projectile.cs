@@ -9,6 +9,7 @@ public class Projectile : MonoBehaviour
     private Rigidbody rb;
     private Collider projectileCollider;
     private string ownerTag;
+    public string OwnerTag => ownerTag;
 
     private void Awake()
     {

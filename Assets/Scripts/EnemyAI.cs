@@ -20,13 +20,13 @@ public class EnemyAI : MonoBehaviour
     [SerializeField] private Projectile projectilePrefab;
 
     [Header("Detection")]
-    [SerializeField] private float detectionRange = 20f;
-    [SerializeField] private float attackRange = 12f;
+    [SerializeField] private float detectionRange = 10f;
+    [SerializeField] private float attackRange = 5f;
     [SerializeField] private float repathInterval = 0.2f;
 
     [Header("Shooting")]
     [SerializeField] private float projectileSpeed = 25f;
-    [SerializeField] private float timeBetweenShots = 0.25f;
+    [SerializeField] private float timeBetweenShots = 0.5f;
     [SerializeField] private int minBurstShots = 2;
     [SerializeField] private int maxBurstShots = 3;
 
@@ -36,20 +36,44 @@ public class EnemyAI : MonoBehaviour
     [SerializeField] private float repositionStopDistance = 0.5f;
 
     [Header("Search Movement")]
-    [SerializeField] private float searchRadius = 8f;
+    [SerializeField] private float searchRadius = 0.5f;
     [SerializeField] private float searchPointTolerance = 0.8f;
+    [SerializeField] private float searchPauseMinTime = 0.8f;
+    [SerializeField] private float searchPauseMaxTime = 1.8f;
+
+    [Header("Health")]
+    [SerializeField] private int maxHealth = 100;
+    [SerializeField] private Color hitBlinkColor = Color.white;
+    [SerializeField] private float hitBlinkDuration = 0.08f;
+    private int currentHealth;
 
     private NavMeshAgent agent;
     private EnemyState state;
     private float nextRepathTime;
     private Vector3 searchCenter;
     private bool burstRoutineRunning;
+    private bool isSearchPaused;
+    private float searchResumeTime;
+    private Material[] blinkMaterials;
+    private Color[] defaultBlinkColors;
+    private Coroutine hitBlinkRoutine;
 
     private void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
         searchCenter = transform.position;
         state = EnemyState.Searching;
+        currentHealth = maxHealth;
+
+        Renderer[] renderers = GetComponentsInChildren<Renderer>();
+        blinkMaterials = new Material[renderers.Length];
+        defaultBlinkColors = new Color[renderers.Length];
+
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            blinkMaterials[i] = renderers[i].material;
+            defaultBlinkColors[i] = blinkMaterials[i].color;
+        }
     }
 
     private void Update()
@@ -92,6 +116,13 @@ public class EnemyAI : MonoBehaviour
         if (CanSeePlayerInDetectionRange())
         {
             state = EnemyState.Chasing;
+            isSearchPaused = false;
+
+            if (CanUseAgent())
+            {
+                agent.isStopped = false;
+            }
+
             return;
         }
 
@@ -100,13 +131,40 @@ public class EnemyAI : MonoBehaviour
             return;
         }
 
-        if (!agent.pathPending && agent.remainingDistance <= searchPointTolerance)
+        if (isSearchPaused)
         {
-            Vector3 randomPoint = searchCenter + Random.insideUnitSphere * searchRadius;
-            if (TryGetNavMeshPoint(randomPoint, searchRadius, out Vector3 navPoint))
+            if (Time.time < searchResumeTime)
             {
-                agent.SetDestination(navPoint);
+                return;
             }
+
+            isSearchPaused = false;
+            agent.isStopped = false;
+            SetNextSearchDestination();
+            return;
+        }
+
+        bool reachedPoint = !agent.pathPending && agent.remainingDistance <= searchPointTolerance;
+        if (reachedPoint)
+        {
+            agent.isStopped = true;
+            isSearchPaused = true;
+            searchResumeTime = Time.time + Random.Range(searchPauseMinTime, searchPauseMaxTime);
+            return;
+        }
+
+        if (!agent.hasPath)
+        {
+            SetNextSearchDestination();
+        }
+    }
+
+    private void SetNextSearchDestination()
+    {
+        Vector3 randomPoint = searchCenter + Random.insideUnitSphere * searchRadius;
+        if (TryGetNavMeshPoint(randomPoint, searchRadius, out Vector3 navPoint))
+        {
+            agent.SetDestination(navPoint);
         }
     }
 
@@ -299,6 +357,73 @@ public class EnemyAI : MonoBehaviour
     private bool CanUseAgent()
     {
         return agent != null && agent.isActiveAndEnabled && agent.isOnNavMesh;
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        Projectile projectile = collision.gameObject.GetComponent<Projectile>();
+        if (projectile != null && projectile.OwnerTag == "Player")
+        {
+            TakeDamage(20);
+        }
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        Projectile projectile = other.GetComponent<Projectile>();
+        if (projectile != null && projectile.OwnerTag == "Player")
+        {
+            TakeDamage(20);
+        }
+    }
+
+    public void TakeDamage(int amount)
+    {
+        currentHealth -= amount;
+        TriggerHitBlink();
+        Debug.Log($"{gameObject.name} wurde getroffen! Leben: {currentHealth}/{maxHealth}");
+        if (currentHealth <= 0)
+        {
+            Destroy(gameObject);
+        }
+    }
+
+    private void TriggerHitBlink()
+    {
+        if (blinkMaterials == null || blinkMaterials.Length == 0)
+        {
+            return;
+        }
+
+        if (hitBlinkRoutine != null)
+        {
+            StopCoroutine(hitBlinkRoutine);
+        }
+
+        hitBlinkRoutine = StartCoroutine(HitBlinkRoutine());
+    }
+
+    private IEnumerator HitBlinkRoutine()
+    {
+        for (int i = 0; i < blinkMaterials.Length; i++)
+        {
+            if (blinkMaterials[i] != null)
+            {
+                blinkMaterials[i].color = hitBlinkColor;
+            }
+        }
+
+        yield return new WaitForSeconds(hitBlinkDuration);
+
+        for (int i = 0; i < blinkMaterials.Length; i++)
+        {
+            if (blinkMaterials[i] != null)
+            {
+                blinkMaterials[i].color = defaultBlinkColors[i];
+            }
+        }
+
+        hitBlinkRoutine = null;
     }
 
     private void OnDrawGizmosSelected()
