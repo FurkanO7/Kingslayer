@@ -1,20 +1,22 @@
 using UnityEngine;
 
+/// <summary>
+/// Reine Visualisierung eines Projektils.
+/// Der eigentliche Hit & Damage wird via Spherecast in PlayerShooter gemacht.
+/// Dieses Skript dient nur dazu, das Projektil fliegen zu lassen und zu zerstören.
+/// </summary>
 [RequireComponent(typeof(Rigidbody))]
-[RequireComponent(typeof(Collider))]
 public class Projectile : MonoBehaviour
 {
     [SerializeField] private float lifetime = 4f;
 
     private Rigidbody rb;
-    private Collider projectileCollider;
     private string ownerTag;
     public string OwnerTag => ownerTag;
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
-        projectileCollider = GetComponent<Collider>();
     }
 
     private void OnEnable()
@@ -25,15 +27,6 @@ public class Projectile : MonoBehaviour
     public void Launch(Vector3 direction, float speed, string sourceTag, Transform sourceRoot)
     {
         ownerTag = sourceTag;
-
-        if (sourceRoot != null && projectileCollider != null)
-        {
-            Collider[] sourceColliders = sourceRoot.GetComponentsInChildren<Collider>();
-            foreach (Collider sourceCollider in sourceColliders)
-            {
-                Physics.IgnoreCollision(projectileCollider, sourceCollider, true);
-            }
-        }
 
         Vector3 normalizedDirection = direction.normalized;
         rb.linearVelocity = normalizedDirection * speed;
@@ -56,29 +49,12 @@ public class Projectile : MonoBehaviour
             return;
         }
 
-        if (ShouldDestroyOnTag(hitCollider.tag))
+        // Zerstöre das Projektil bei Hindernis-Treffer
+        if (hitCollider.CompareTag("obstacle"))
         {
             Destroy(gameObject);
         }
-    }
-
-    private bool ShouldDestroyOnTag(string hitTag)
-    {
-        if (hitTag == "obstacle")
-        {
-            return true;
-        }
-
-        if (ownerTag == "Player" && hitTag == "Enemy")
-        {
-            return true;
-        }
-
-        if (ownerTag == "Enemy" && hitTag == "Player")
-        {
-            return true;
-        }
-
-        return false;
+        
+        // Ignoriere Gegner und Spieler - Damage wird NUR über Spherecast gemacht!
     }
 }
