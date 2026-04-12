@@ -246,13 +246,13 @@ MonoBehaviour:
   detectionRange: 10
   attackRange: 5
   repathInterval: 1
-  projectileSpeed: 25
-  timeBetweenShots: 0.5
-  minBurstShots: 2
-  maxBurstShots: 3
+  projectileSpeed: 20
+  timeBetweenShots: 1
+  minBurstShots: 1
+  maxBurstShots: 2
   repositionMinDistance: 2.5
   repositionMaxDistance: 4.5
-  repositionStopDistance: 0.5
+  repositionStopDistance: 1
   searchRadius: 2
   searchPointTolerance: 0.8
   searchPauseMinTime: 0.8

@@ -2403,6 +2403,20 @@ Transform:
   m_Children: []
   m_Father: {fileID: 964630011}
   m_LocalEulerAnglesHint: {x: 0, y: -92.35, z: 0}
+--- !u!114 &1966368717
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc1515ab76e54f068e2f2207940fab32, type: 3}
+  m_Name: Player/Melee
+  m_EditorClassIdentifier: 
+  m_Asset: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  m_ActionId: 9f4c2ac0-3e31-43f6-a847-a9664749a311
 --- !u!1001 &1980615283
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2753,6 +2767,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3173802655333963620, guid: 819e892a8f79cfa48b21ce0c584fab64, type: 3}
+      propertyPath: meleeAction
+      value: 
+      objectReference: {fileID: 1966368717}
+    - target: {fileID: 3173802655333963620, guid: 819e892a8f79cfa48b21ce0c584fab64, type: 3}
       propertyPath: shootAction
       value: 
       objectReference: {fileID: 1941375011}
@@ -2762,7 +2780,7 @@ PrefabInstance:
       objectReference: {fileID: 1390570117}
     - target: {fileID: 3173802655333963620, guid: 819e892a8f79cfa48b21ce0c584fab64, type: 3}
       propertyPath: spherecastDistance
-      value: 300
+      value: 150
       objectReference: {fileID: 0}
     - target: {fileID: 3860681166605753051, guid: 819e892a8f79cfa48b21ce0c584fab64, type: 3}
       propertyPath: m_Name
