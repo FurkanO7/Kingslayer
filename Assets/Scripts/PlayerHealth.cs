@@ -1,4 +1,5 @@
 using UnityEngine;
+using System;
 
 public class PlayerHealth : MonoBehaviour
 {
@@ -8,11 +9,15 @@ public class PlayerHealth : MonoBehaviour
 
     private int currentHealth;
 
+    public event Action<int, int> HealthChanged;
+
     public int CurrentHealth => currentHealth;
+    public int MaxHealth => maxHealth;
 
     private void Awake()
     {
         currentHealth = maxHealth;
+        NotifyHealthChanged();
     }
 
     private void OnCollisionEnter(Collision collision)
@@ -48,11 +53,22 @@ public class PlayerHealth : MonoBehaviour
 
     public void TakeDamage(int amount)
     {
+        if (amount <= 0 || currentHealth <= 0)
+        {
+            return;
+        }
+
         currentHealth -= amount;
+
+        if (currentHealth < 0)
+        {
+            currentHealth = 0;
+        }
+
+        NotifyHealthChanged();
 
         if (currentHealth <= 0)
         {
-            currentHealth = 0;
             Debug.Log("Player ist gestorben.");
             return;
         }
@@ -62,7 +78,7 @@ public class PlayerHealth : MonoBehaviour
 
     public void Heal(int amount)
     {
-        if (amount <= 0)
+        if (amount <= 0 || currentHealth <= 0)
         {
             return;
         }
@@ -73,6 +89,13 @@ public class PlayerHealth : MonoBehaviour
             currentHealth = maxHealth;
         }
 
+        NotifyHealthChanged();
+
         Debug.Log($"Player wurde geheilt! Leben: {currentHealth}/{maxHealth}");
+    }
+
+    private void NotifyHealthChanged()
+    {
+        HealthChanged?.Invoke(currentHealth, maxHealth);
     }
 }

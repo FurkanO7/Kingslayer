@@ -243,7 +243,7 @@ MonoBehaviour:
   playerTag: Player
   projectileSpawn: {fileID: 7002993628623063615}
   projectilePrefab: {fileID: -2166008512583293118, guid: 8717401cc9daa4a43ba2e01e74060d78, type: 3}
-  detectionRange: 10
+  detectionRange: 7.74
   attackRange: 5
   repathInterval: 1
   projectileSpeed: 20
