@@ -76,36 +76,16 @@ public class WeaponPickup : MonoBehaviour
         WeaponManager weaponManager = FindObjectOfType<WeaponManager>();
         if (weaponManager != null)
         {
-            Rigidbody rb = GetComponent<Rigidbody>();
-            if (rb != null)
-            {
-                rb.linearVelocity = Vector3.zero;
-                rb.angularVelocity = Vector3.zero;
-                rb.useGravity = false;
-                rb.isKinematic = true;
-            }
-
             weaponManager.EquipWeapon(weapon);
             
             // Finde den Player (parent von WeaponManager)
             Transform playerTransform = weaponManager.transform.parent ?? weaponManager.transform;
             Transform weaponHand = playerTransform.Find("WeaponHand");
             
-            if (weaponHand != null)
-            {
-                transform.SetParent(weaponHand);
-                transform.localPosition = Vector3.zero;
-                transform.localRotation = Quaternion.identity;
-                Debug.Log("Waffe erfolgreich zu WeaponHand moved!");
-            }
-            else
-            {
-                Debug.LogWarning($"WeaponPickup: WeaponHand nicht gefunden! Suche in: {playerTransform.name}");
-                Debug.LogWarning($"Gefundene Kinder: {string.Join(", ", System.Linq.Enumerable.Select(playerTransform.GetComponentsInChildren<Transform>(), t => t.name))}");
-                transform.SetParent(playerTransform);
-                transform.localPosition = Vector3.zero;
-                transform.localRotation = Quaternion.identity;
-            }
+            Transform parent = weaponHand != null ? weaponHand : playerTransform;
+            transform.SetParent(parent);
+            transform.localPosition = Vector3.zero;
+            transform.localRotation = Quaternion.identity;
             
             // Deaktiviere nur den Trigger-Collider für Pickup
             if (triggerCollider != null)

@@ -50,20 +50,7 @@ public class WeaponManager : MonoBehaviour
         Transform weaponTransform = weaponToDrop.transform;
         weaponTransform.SetParent(null, true);
         weaponTransform.SetPositionAndRotation(worldPosition, worldRotation);
-        weaponToDrop.gameObject.SetActive(true);
-
-        Rigidbody rb = weaponToDrop.GetComponent<Rigidbody>();
-        if (rb == null)
-        {
-            rb = weaponToDrop.gameObject.AddComponent<Rigidbody>();
-        }
-
-        rb.isKinematic = false;
-        rb.useGravity = true;
-        rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
-        rb.interpolation = RigidbodyInterpolation.Interpolate;
-        rb.linearVelocity = Vector3.zero;
-        rb.angularVelocity = Vector3.zero;
+        weaponToDrop.PrepareForDrop();
 
         WeaponPickup pickup = weaponToDrop.GetComponent<WeaponPickup>();
         if (pickup != null)

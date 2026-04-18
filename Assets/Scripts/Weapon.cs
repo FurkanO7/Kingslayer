@@ -11,6 +11,8 @@ public class Weapon : MonoBehaviour
     private int ammoInMagazine;
     private int reserveAmmo;
     private bool ammoInitialized;
+    private Collider[] weaponColliders;
+    private Rigidbody weaponRigidbody;
     
     public string WeaponName => weaponName;
     public int MagazineSize => magazineSize;
@@ -23,20 +25,27 @@ public class Weapon : MonoBehaviour
 
     private void Awake()
     {
+        weaponColliders = GetComponents<Collider>();
+        weaponRigidbody = GetComponent<Rigidbody>();
         InitializeAmmoIfNeeded();
     }
     
     public void OnEquipped()
     {
         InitializeAmmoIfNeeded();
-        // Waffe aktivieren wenn ausgerüstet
         gameObject.SetActive(true);
+        SetCarriedState();
     }
     
     public void OnUnequipped()
     {
-        // Waffe deaktivieren wenn abgelegt
         gameObject.SetActive(false);
+    }
+
+    public void PrepareForDrop()
+    {
+        gameObject.SetActive(true);
+        SetDroppedState();
     }
 
     public bool ConsumeShot()
@@ -89,5 +98,74 @@ public class Weapon : MonoBehaviour
         ammoInMagazine = Mathf.Min(magazineSize, totalAmmo);
         reserveAmmo = Mathf.Max(0, totalAmmo - ammoInMagazine);
         ammoInitialized = true;
+    }
+
+    private void SetCarriedState()
+    {
+        EnsureRigidbody();
+
+        if (weaponRigidbody != null)
+        {
+            weaponRigidbody.linearVelocity = Vector3.zero;
+            weaponRigidbody.angularVelocity = Vector3.zero;
+            weaponRigidbody.useGravity = false;
+            weaponRigidbody.isKinematic = true;
+            weaponRigidbody.detectCollisions = false;
+            weaponRigidbody.interpolation = RigidbodyInterpolation.None;
+            weaponRigidbody.collisionDetectionMode = CollisionDetectionMode.Discrete;
+        }
+
+        SetSolidCollidersEnabled(false);
+    }
+
+    private void SetDroppedState()
+    {
+        EnsureRigidbody();
+
+        if (weaponRigidbody != null)
+        {
+            weaponRigidbody.linearVelocity = Vector3.zero;
+            weaponRigidbody.angularVelocity = Vector3.zero;
+            weaponRigidbody.useGravity = true;
+            weaponRigidbody.isKinematic = false;
+            weaponRigidbody.detectCollisions = true;
+            weaponRigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+            weaponRigidbody.interpolation = RigidbodyInterpolation.Interpolate;
+        }
+
+        SetSolidCollidersEnabled(true);
+    }
+
+    private void SetSolidCollidersEnabled(bool enabled)
+    {
+        if (weaponColliders == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < weaponColliders.Length; i++)
+        {
+            Collider col = weaponColliders[i];
+            if (col == null || col.isTrigger)
+            {
+                continue;
+            }
+
+            col.enabled = enabled;
+        }
+    }
+
+    private void EnsureRigidbody()
+    {
+        if (weaponRigidbody != null)
+        {
+            return;
+        }
+
+        weaponRigidbody = GetComponent<Rigidbody>();
+        if (weaponRigidbody == null)
+        {
+            weaponRigidbody = gameObject.AddComponent<Rigidbody>();
+        }
     }
 }

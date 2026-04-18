@@ -7,6 +7,7 @@ public class PlayerShooter : MonoBehaviour
     [Header("Input Actions")]
     [SerializeField] private InputActionReference shootAction;
     [SerializeField] private InputActionReference meleeAction;
+    [SerializeField] private InputActionReference reloadAction;
 
     [Header("References")]
     [SerializeField] private Transform cameraTransform;
@@ -69,6 +70,12 @@ public class PlayerShooter : MonoBehaviour
             meleeAction.action.Enable();
             meleeAction.action.performed += OnMeleePerformed;
         }
+
+        if (reloadAction != null)
+        {
+            reloadAction.action.Enable();
+            reloadAction.action.performed += OnReloadPerformed;
+        }
     }
 
     private void OnDisable()
@@ -84,6 +91,12 @@ public class PlayerShooter : MonoBehaviour
             meleeAction.action.performed -= OnMeleePerformed;
             meleeAction.action.Disable();
         }
+
+        if (reloadAction != null)
+        {
+            reloadAction.action.performed -= OnReloadPerformed;
+            reloadAction.action.Disable();
+        }
     }
 
     private void OnShootPerformed(InputAction.CallbackContext context)
@@ -94,6 +107,33 @@ public class PlayerShooter : MonoBehaviour
     private void OnMeleePerformed(InputAction.CallbackContext context)
     {
         TryMelee();
+    }
+
+    private void OnReloadPerformed(InputAction.CallbackContext context)
+    {
+        TryManualReload();
+    }
+
+    private void TryManualReload()
+    {
+        if (isReloading || weaponManager == null)
+        {
+            return;
+        }
+
+        Weapon equippedWeapon = weaponManager.EquippedWeapon;
+        if (equippedWeapon == null || equippedWeapon.ReserveAmmo <= 0)
+        {
+            return;
+        }
+
+        if (equippedWeapon.AmmoInMagazine >= equippedWeapon.MagazineSize)
+        {
+            return;
+        }
+
+        isReloading = true;
+        reloadEndTime = Time.time + equippedWeapon.ReloadDuration;
     }
 
     private void TryShoot()
