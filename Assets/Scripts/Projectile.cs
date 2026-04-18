@@ -12,6 +12,7 @@ public class Projectile : MonoBehaviour
 
     private Rigidbody rb;
     private string ownerTag;
+    private Transform ownerRoot;
     public string OwnerTag => ownerTag;
 
     private void Awake()
@@ -27,6 +28,7 @@ public class Projectile : MonoBehaviour
     public void Launch(Vector3 direction, float speed, string sourceTag, Transform sourceRoot)
     {
         ownerTag = sourceTag;
+        ownerRoot = sourceRoot;
 
         Vector3 normalizedDirection = direction.normalized;
         rb.linearVelocity = normalizedDirection * speed;
@@ -49,12 +51,11 @@ public class Projectile : MonoBehaviour
             return;
         }
 
-        // Zerstöre das Projektil bei Hindernis-Treffer
-        if (hitCollider.CompareTag("obstacle"))
+        if (ownerRoot != null && hitCollider.transform.root == ownerRoot)
         {
-            Destroy(gameObject);
+            return;
         }
-        
-        // Ignoriere Gegner und Spieler - Damage wird NUR über Spherecast gemacht!
+
+        Destroy(gameObject);
     }
 }

@@ -36,4 +36,42 @@ public class WeaponManager : MonoBehaviour
             equippedWeapon = null;
         }
     }
+
+    public bool DropEquippedWeapon(Vector3 worldPosition, Quaternion worldRotation)
+    {
+        if (equippedWeapon == null)
+        {
+            return false;
+        }
+
+        Weapon weaponToDrop = equippedWeapon;
+        equippedWeapon = null;
+
+        Transform weaponTransform = weaponToDrop.transform;
+        weaponTransform.SetParent(null, true);
+        weaponTransform.SetPositionAndRotation(worldPosition, worldRotation);
+        weaponToDrop.gameObject.SetActive(true);
+
+        Rigidbody rb = weaponToDrop.GetComponent<Rigidbody>();
+        if (rb == null)
+        {
+            rb = weaponToDrop.gameObject.AddComponent<Rigidbody>();
+        }
+
+        rb.isKinematic = false;
+        rb.useGravity = true;
+        rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+        rb.interpolation = RigidbodyInterpolation.Interpolate;
+        rb.linearVelocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
+
+        WeaponPickup pickup = weaponToDrop.GetComponent<WeaponPickup>();
+        if (pickup != null)
+        {
+            pickup.EnablePickupAfterDrop();
+        }
+
+        Debug.Log($"Waffe gedroppt: {weaponToDrop.WeaponName}");
+        return true;
+    }
 }

@@ -48,6 +48,7 @@ public class EnemyAI : MonoBehaviour
     private int currentHealth;
 
     private NavMeshAgent agent;
+    private Rigidbody enemyRigidbody;
     private EnemyState state;
     private float nextRepathTime;
     private Vector3 searchCenter;
@@ -57,13 +58,51 @@ public class EnemyAI : MonoBehaviour
     private Material[] blinkMaterials;
     private Color[] defaultBlinkColors;
     private Coroutine hitBlinkRoutine;
+    private Collider mainCollider;
+
+    public Vector3 AimPoint
+    {
+        get
+        {
+            if (mainCollider != null)
+            {
+                return mainCollider.bounds.center;
+            }
+
+            return transform.position + Vector3.up;
+        }
+    }
+
+    public float HitRadius
+    {
+        get
+        {
+            if (mainCollider != null)
+            {
+                Vector3 extents = mainCollider.bounds.extents;
+                return Mathf.Max(extents.x, extents.y, extents.z);
+            }
+
+            return 0.75f;
+        }
+    }
 
     private void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
+        enemyRigidbody = GetComponent<Rigidbody>();
+        mainCollider = GetComponent<Collider>();
         searchCenter = transform.position;
         state = EnemyState.Searching;
         currentHealth = maxHealth;
+
+        if (enemyRigidbody != null)
+        {
+            enemyRigidbody.useGravity = false;
+            enemyRigidbody.isKinematic = true;
+            enemyRigidbody.linearVelocity = Vector3.zero;
+            enemyRigidbody.angularVelocity = Vector3.zero;
+        }
 
         Renderer[] renderers = GetComponentsInChildren<Renderer>();
         blinkMaterials = new Material[renderers.Length];
@@ -357,24 +396,6 @@ public class EnemyAI : MonoBehaviour
     private bool CanUseAgent()
     {
         return agent != null && agent.isActiveAndEnabled && agent.isOnNavMesh;
-    }
-
-    private void OnCollisionEnter(Collision collision)
-    {
-        Projectile projectile = collision.gameObject.GetComponent<Projectile>();
-        if (projectile != null && projectile.OwnerTag == "Player")
-        {
-            TakeDamage(20);
-        }
-    }
-
-    private void OnTriggerEnter(Collider other)
-    {
-        Projectile projectile = other.GetComponent<Projectile>();
-        if (projectile != null && projectile.OwnerTag == "Player")
-        {
-            TakeDamage(20);
-        }
     }
 
     public void TakeDamage(int amount)

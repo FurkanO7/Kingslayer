@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using System.Collections.Generic;
 
 public class PlayerShooter : MonoBehaviour
 {
@@ -21,7 +22,6 @@ public class PlayerShooter : MonoBehaviour
     [SerializeField] private float spherecastRadius = 0.5f;
     [SerializeField] private float spherecastDistance = 100f;
     [SerializeField] private int projectileDamage = 20;
-    [SerializeField] private LayerMask hitMask = -1;
 
     [Header("Melee Settings")]
     [SerializeField] private float meleeRange = 2f;
@@ -32,6 +32,29 @@ public class PlayerShooter : MonoBehaviour
 
     private float nextShotTime;
     private float nextMeleeTime;
+    private bool isReloading;
+    private float reloadEndTime;
+    private readonly HashSet<Collider> selfColliders = new HashSet<Collider>();
+
+    private void Awake()
+    {
+        CacheSelfColliders();
+    }
+
+    private void Update()
+    {
+        if (!isReloading)
+        {
+            return;
+        }
+
+        if (Time.time < reloadEndTime)
+        {
+            return;
+        }
+
+        CompleteReload();
+    }
 
     private void OnEnable()
     {
@@ -81,6 +104,23 @@ public class PlayerShooter : MonoBehaviour
             return;
         }
 
+        Weapon equippedWeapon = weaponManager.EquippedWeapon;
+        if (equippedWeapon == null)
+        {
+            return;
+        }
+
+        if (isReloading)
+        {
+            return;
+        }
+
+        if (!equippedWeapon.CanShoot)
+        {
+            StartReloadIfPossible(equippedWeapon);
+            return;
+        }
+
         if (Time.time < nextShotTime)
         {
             return;
@@ -93,8 +133,12 @@ public class PlayerShooter : MonoBehaviour
 
         Vector3 shootDirection = cameraTransform.forward;
 
-        // Spherecast startet direkt von der Kamera (nicht vorne versetzt!)
-        PerformSpherecasting(cameraTransform.position, shootDirection);
+        EnemyAI hitEnemy = FindBestShootTarget(cameraTransform.position, shootDirection);
+        if (hitEnemy != null)
+        {
+            hitEnemy.TakeDamage(projectileDamage);
+            Debug.Log($"Gegner getroffen: {hitEnemy.name}, Schaden: {projectileDamage}");
+        }
 
         // Projektil als Visualisierung instantiieren
         Vector3 spawnPosition = cameraTransform.position + shootDirection * spawnDistanceFromCamera;
@@ -102,7 +146,14 @@ public class PlayerShooter : MonoBehaviour
         Projectile projectile = Instantiate(projectilePrefab, spawnPosition, spawnRotation);
         projectile.Launch(shootDirection, projectileSpeed, gameObject.tag, transform.root);
 
+        equippedWeapon.ConsumeShot();
+
         nextShotTime = Time.time + shotCooldown;
+
+        if (equippedWeapon.NeedsReload)
+        {
+            StartReloadIfPossible(equippedWeapon);
+        }
     }
 
     private void TryMelee()
@@ -118,30 +169,31 @@ public class PlayerShooter : MonoBehaviour
         }
 
         Vector3 attackCenter = cameraTransform.position + (cameraTransform.forward * meleeRange);
-        Collider[] hits = Physics.OverlapSphere(attackCenter, meleeRadius, hitMask);
-        System.Collections.Generic.HashSet<EnemyAI> alreadyDamaged = new System.Collections.Generic.HashSet<EnemyAI>();
+        HashSet<EnemyAI> alreadyDamaged = new HashSet<EnemyAI>();
+        EnemyAI[] enemies = FindObjectsByType<EnemyAI>(FindObjectsSortMode.None);
 
-        foreach (Collider hit in hits)
+        foreach (EnemyAI enemy in enemies)
         {
-            if (hit == null || hit.CompareTag("Player"))
+            if (enemy == null)
             {
                 continue;
             }
 
-            Vector3 toTarget = (hit.bounds.center - cameraTransform.position).normalized;
+            Vector3 enemyPoint = enemy.AimPoint;
+            float hitRadius = meleeRadius + enemy.HitRadius;
+            if ((enemyPoint - attackCenter).sqrMagnitude > hitRadius * hitRadius)
+            {
+                continue;
+            }
+
+            Vector3 toTarget = (enemyPoint - cameraTransform.position).normalized;
             float forwardDot = Vector3.Dot(cameraTransform.forward, toTarget);
             if (forwardDot < meleeFrontThreshold)
             {
                 continue;
             }
 
-            EnemyAI enemy = hit.GetComponent<EnemyAI>();
-            if (enemy == null)
-            {
-                enemy = hit.GetComponentInParent<EnemyAI>();
-            }
-
-            if (enemy == null || alreadyDamaged.Contains(enemy))
+            if (alreadyDamaged.Contains(enemy))
             {
                 continue;
             }
@@ -154,52 +206,155 @@ public class PlayerShooter : MonoBehaviour
         nextMeleeTime = Time.time + meleeCooldown;
     }
 
-    private void PerformSpherecasting(Vector3 startPosition, Vector3 direction)
+    private void StartReloadIfPossible(Weapon weapon)
     {
-        System.Collections.Generic.HashSet<Collider> alreadyHit = new System.Collections.Generic.HashSet<Collider>();
-
-        // OverlapSphere am Startpunkt: fängt Gegner ab die direkt in Reichweite sind
-        // (SphereCastAll ignoriert Collider die bereits am Startpunkt überlappen)
-        Collider[] overlapping = Physics.OverlapSphere(startPosition, spherecastRadius, hitMask);
-        foreach (Collider col in overlapping)
+        if (weapon == null || isReloading)
         {
-            if (!col.CompareTag("Player"))
-            {
-                ProcessHit(col);
-                alreadyHit.Add(col);
-            }
+            return;
         }
 
-        // SphereCastAll für alles weiter entfernt
-        RaycastHit[] hits = Physics.SphereCastAll(startPosition, spherecastRadius, direction, spherecastDistance, hitMask);
-        foreach (RaycastHit hit in hits)
+        if (!weapon.NeedsReload)
         {
-            if (alreadyHit.Contains(hit.collider))
+            if (!weapon.HasAnyAmmo)
+            {
+                Debug.Log("Keine Munition mehr.");
+            }
+            return;
+        }
+
+        isReloading = true;
+        reloadEndTime = Time.time + weapon.ReloadDuration;
+        Debug.Log($"Reload gestartet ({weapon.ReloadDuration:0.0}s)");
+    }
+
+    private void CompleteReload()
+    {
+        isReloading = false;
+
+        if (weaponManager == null)
+        {
+            return;
+        }
+
+        Weapon equippedWeapon = weaponManager.EquippedWeapon;
+        if (equippedWeapon == null)
+        {
+            return;
+        }
+
+        if (equippedWeapon.Reload())
+        {
+            Debug.Log($"Reload fertig. Munition: {equippedWeapon.AmmoInMagazine}/{equippedWeapon.ReserveAmmo}");
+        }
+    }
+
+    private bool ShouldIgnoreHitCollider(Collider hitCollider)
+    {
+        if (hitCollider == null)
+        {
+            return true;
+        }
+
+        if (selfColliders.Contains(hitCollider))
+        {
+            return true;
+        }
+
+        if (hitCollider.GetComponent<Projectile>() != null)
+        {
+            return true;
+        }
+
+        if (hitCollider.GetComponentInParent<WeaponPickup>() != null)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private EnemyAI FindBestShootTarget(Vector3 startPosition, Vector3 direction)
+    {
+        EnemyAI[] enemies = FindObjectsByType<EnemyAI>(FindObjectsSortMode.None);
+        EnemyAI bestEnemy = null;
+        float bestDistance = spherecastDistance;
+
+        foreach (EnemyAI enemy in enemies)
+        {
+            if (enemy == null)
             {
                 continue;
             }
 
-            if (!hit.collider.CompareTag("Player"))
+            Vector3 toEnemy = enemy.AimPoint - startPosition;
+            float forwardDistance = Vector3.Dot(direction, toEnemy);
+            if (forwardDistance < 0f || forwardDistance > spherecastDistance)
             {
-                ProcessHit(hit.collider);
-                alreadyHit.Add(hit.collider);
+                continue;
+            }
+
+            Vector3 closestPointOnRay = startPosition + direction * forwardDistance;
+            float hitRadius = spherecastRadius + enemy.HitRadius;
+            if ((enemy.AimPoint - closestPointOnRay).sqrMagnitude > hitRadius * hitRadius)
+            {
+                continue;
+            }
+
+            if (IsObstacleBlockingShot(startPosition, enemy.AimPoint, enemy))
+            {
+                continue;
+            }
+
+            if (forwardDistance < bestDistance)
+            {
+                bestDistance = forwardDistance;
+                bestEnemy = enemy;
             }
         }
+
+        return bestEnemy;
     }
 
-    private void ProcessHit(Collider hitCollider)
+    private bool IsObstacleBlockingShot(Vector3 startPosition, Vector3 targetPosition, EnemyAI targetEnemy)
     {
-        if (hitCollider.CompareTag("Enemy"))
+        Vector3 directionToTarget = targetPosition - startPosition;
+        float distanceToTarget = directionToTarget.magnitude;
+        if (distanceToTarget <= 0.001f)
         {
-            EnemyAI enemy = hitCollider.GetComponent<EnemyAI>();
-            if (enemy == null)
+            return false;
+        }
+
+        RaycastHit[] hits = Physics.RaycastAll(startPosition, directionToTarget.normalized, distanceToTarget, ~0, QueryTriggerInteraction.Ignore);
+        for (int i = 0; i < hits.Length; i++)
+        {
+            Collider hitCollider = hits[i].collider;
+            if (ShouldIgnoreHitCollider(hitCollider))
             {
-                enemy = hitCollider.GetComponentInParent<EnemyAI>();
+                continue;
             }
-            if (enemy != null)
+
+            EnemyAI hitEnemy = hitCollider.GetComponentInParent<EnemyAI>();
+            if (hitEnemy == targetEnemy)
             {
-                enemy.TakeDamage(projectileDamage);
-                Debug.Log($"Gegner getroffen: {hitCollider.name}, Schaden: {projectileDamage}");
+                return false;
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private void CacheSelfColliders()
+    {
+        selfColliders.Clear();
+
+        Collider[] colliders = GetComponentsInChildren<Collider>(true);
+        foreach (Collider col in colliders)
+        {
+            if (col != null)
+            {
+                selfColliders.Add(col);
             }
         }
     }

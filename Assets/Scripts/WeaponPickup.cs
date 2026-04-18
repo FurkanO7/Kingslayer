@@ -9,6 +9,11 @@ public class WeaponPickup : MonoBehaviour
     private Weapon weapon;
     private bool playerInRange;
     private Collider triggerCollider;
+
+    private void Awake()
+    {
+        CacheTriggerCollider();
+    }
     
     private void OnEnable()
     {
@@ -38,15 +43,7 @@ public class WeaponPickup : MonoBehaviour
             return;
         }
         
-        // Finde den Trigger-Collider (Sphere/Capsule mit Is Trigger)
-        foreach (Collider col in GetComponents<Collider>())
-        {
-            if (col.isTrigger)
-            {
-                triggerCollider = col;
-                break;
-            }
-        }
+        CacheTriggerCollider();
     }
     
     private void OnTriggerEnter(Collider other)
@@ -79,6 +76,15 @@ public class WeaponPickup : MonoBehaviour
         WeaponManager weaponManager = FindObjectOfType<WeaponManager>();
         if (weaponManager != null)
         {
+            Rigidbody rb = GetComponent<Rigidbody>();
+            if (rb != null)
+            {
+                rb.linearVelocity = Vector3.zero;
+                rb.angularVelocity = Vector3.zero;
+                rb.useGravity = false;
+                rb.isKinematic = true;
+            }
+
             weaponManager.EquipWeapon(weapon);
             
             // Finde den Player (parent von WeaponManager)
@@ -113,6 +119,37 @@ public class WeaponPickup : MonoBehaviour
         else
         {
             Debug.LogError("WeaponPickup: WeaponManager nicht gefunden!");
+        }
+    }
+
+    public void EnablePickupAfterDrop()
+    {
+        playerInRange = false;
+        CacheTriggerCollider();
+
+        if (triggerCollider != null)
+        {
+            triggerCollider.enabled = true;
+        }
+
+        enabled = true;
+    }
+
+    private void CacheTriggerCollider()
+    {
+        if (triggerCollider != null)
+        {
+            return;
+        }
+
+        // Finde den Trigger-Collider (Sphere/Capsule mit Is Trigger)
+        foreach (Collider col in GetComponents<Collider>())
+        {
+            if (col.isTrigger)
+            {
+                triggerCollider = col;
+                break;
+            }
         }
     }
 }
