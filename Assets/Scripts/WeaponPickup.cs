@@ -73,7 +73,7 @@ public class WeaponPickup : MonoBehaviour
     
     private void PickupWeapon()
     {
-        WeaponManager weaponManager = FindObjectOfType<WeaponManager>();
+        WeaponManager weaponManager = FindFirstObjectByType<WeaponManager>();
         if (weaponManager != null)
         {
             weaponManager.EquipWeapon(weapon);

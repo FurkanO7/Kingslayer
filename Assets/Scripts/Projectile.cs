@@ -8,7 +8,7 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody))]
 public class Projectile : MonoBehaviour
 {
-    [SerializeField] private float lifetime = 4f;
+    [SerializeField] private float lifetime = 6f;
 
     private Rigidbody rb;
     private string ownerTag;

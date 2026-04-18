@@ -20,31 +20,31 @@ public class EnemyAI : MonoBehaviour
     [SerializeField] private Projectile projectilePrefab;
 
     [Header("Detection")]
-    [SerializeField] private float detectionRange = 10f;
+    [SerializeField] private float detectionRange = 7.5f;
     [SerializeField] private float attackRange = 5f;
-    [SerializeField] private float repathInterval = 0.2f;
+    [SerializeField] private float repathInterval = 1f;
 
     [Header("Shooting")]
-    [SerializeField] private float projectileSpeed = 25f;
-    [SerializeField] private float timeBetweenShots = 0.5f;
-    [SerializeField] private int minBurstShots = 2;
-    [SerializeField] private int maxBurstShots = 3;
+    [SerializeField] private float projectileSpeed = 20f;
+    [SerializeField] private float timeBetweenShots = 1f;
+    [SerializeField] private int minBurstShots = 1;
+    [SerializeField] private int maxBurstShots = 2;
 
     [Header("Reposition")]
-    [SerializeField] private float repositionMinDistance = 2.5f;
-    [SerializeField] private float repositionMaxDistance = 4.5f;
-    [SerializeField] private float repositionStopDistance = 0.5f;
+    private float repositionMinDistance = 2.5f;
+    private float repositionMaxDistance = 4.5f;
+    private float repositionStopDistance = 1f;
 
     [Header("Search Movement")]
-    [SerializeField] private float searchRadius = 0.5f;
-    [SerializeField] private float searchPointTolerance = 0.8f;
-    [SerializeField] private float searchPauseMinTime = 0.8f;
-    [SerializeField] private float searchPauseMaxTime = 1.8f;
+    private float searchRadius = 2f;
+    private float searchPointTolerance = 0.8f;
+    private float searchPauseMinTime = 0.8f;
+    private float searchPauseMaxTime = 1.8f;
 
     [Header("Health")]
     [SerializeField] private int maxHealth = 100;
     [SerializeField] private Color hitBlinkColor = Color.white;
-    [SerializeField] private float hitBlinkDuration = 0.08f;
+    private float hitBlinkDuration = 0.08f;
     private int currentHealth;
 
     private NavMeshAgent agent;
