@@ -4,7 +4,7 @@ using UnityEngine.InputSystem;
 public class WeaponPickup : MonoBehaviour
 {
     [SerializeField] private InputActionReference pickupAction;
-    [SerializeField] private string pickupPromptText = "WAFFE AUFNEHMEN";
+    private string pickupPromptText = "WAFFE AUFNEHMEN";
     
     private Weapon weapon;
     private bool playerInRange;
@@ -51,7 +51,9 @@ public class WeaponPickup : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             playerInRange = true;
-            Debug.Log(pickupPromptText);
+            string name = weapon != null ? weapon.WeaponName : pickupPromptText;
+            if (PickupPromptHUD.Instance != null)
+                PickupPromptHUD.Instance.Show(name);
         }
     }
     
@@ -60,6 +62,8 @@ public class WeaponPickup : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             playerInRange = false;
+            if (PickupPromptHUD.Instance != null)
+                PickupPromptHUD.Instance.Hide();
         }
     }
     
@@ -95,6 +99,8 @@ public class WeaponPickup : MonoBehaviour
             
             // Deaktiviere dieses Script
             enabled = false;
+            if (PickupPromptHUD.Instance != null)
+                PickupPromptHUD.Instance.Hide();
         }
         else
         {

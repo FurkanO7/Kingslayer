@@ -13,16 +13,14 @@ public class PlayerShooter : MonoBehaviour
     [SerializeField] private Transform cameraTransform;
     [SerializeField] private Projectile projectilePrefab;
     [SerializeField] private WeaponManager weaponManager;
+    [SerializeField] private AudioSource shootAudioSource;
 
     [Header("Shot Settings")]
-    [SerializeField] private float projectileSpeed = 150f;
-    [SerializeField] private float shotCooldown = 0.5f;
     [SerializeField] private float spawnDistanceFromCamera = 0.5f;
     
     [Header("Spherecast Settings")]
     [SerializeField] private float spherecastRadius = 0.5f;
     [SerializeField] private float spherecastDistance = 100f;
-    [SerializeField] private int projectileDamage = 20;
 
     [Header("Melee Settings")]
     [SerializeField] private float meleeRange = 2f;
@@ -35,26 +33,49 @@ public class PlayerShooter : MonoBehaviour
     private float nextMeleeTime;
     private bool isReloading;
     private float reloadEndTime;
+    private float reloadStartTime;
+    private float reloadDuration;
     private readonly HashSet<Collider> selfColliders = new HashSet<Collider>();
+
+    public bool IsReloading => isReloading;
+    public float ReloadProgress
+    {
+        get
+        {
+            if (!isReloading || reloadDuration <= 0f)
+            {
+                return 0f;
+            }
+
+            float elapsedTime = Time.time - reloadStartTime;
+            return Mathf.Clamp01(elapsedTime / reloadDuration);
+        }
+    }
 
     private void Awake()
     {
+        if (shootAudioSource == null)
+        {
+            shootAudioSource = GetComponent<AudioSource>();
+        }
+
         CacheSelfColliders();
     }
 
     private void Update()
     {
-        if (!isReloading)
+        if (isReloading)
         {
-            return;
+            if (Time.time >= reloadEndTime)
+            {
+                CompleteReload();
+            }
         }
 
-        if (Time.time < reloadEndTime)
+        if (shootAction != null && shootAction.action.IsPressed())
         {
-            return;
+            TryShoot();
         }
-
-        CompleteReload();
     }
 
     private void OnEnable()
@@ -62,7 +83,6 @@ public class PlayerShooter : MonoBehaviour
         if (shootAction != null)
         {
             shootAction.action.Enable();
-            shootAction.action.performed += OnShootPerformed;
         }
 
         if (meleeAction != null)
@@ -82,7 +102,6 @@ public class PlayerShooter : MonoBehaviour
     {
         if (shootAction != null)
         {
-            shootAction.action.performed -= OnShootPerformed;
             shootAction.action.Disable();
         }
 
@@ -97,11 +116,6 @@ public class PlayerShooter : MonoBehaviour
             reloadAction.action.performed -= OnReloadPerformed;
             reloadAction.action.Disable();
         }
-    }
-
-    private void OnShootPerformed(InputAction.CallbackContext context)
-    {
-        TryShoot();
     }
 
     private void OnMeleePerformed(InputAction.CallbackContext context)
@@ -133,7 +147,10 @@ public class PlayerShooter : MonoBehaviour
         }
 
         isReloading = true;
+        reloadStartTime = Time.time;
+        reloadDuration = equippedWeapon.ReloadDuration;
         reloadEndTime = Time.time + equippedWeapon.ReloadDuration;
+        PlayReloadSound(equippedWeapon);
     }
 
     private void TryShoot()
@@ -171,24 +188,24 @@ public class PlayerShooter : MonoBehaviour
             return;
         }
 
-        Vector3 shootDirection = cameraTransform.forward;
+        Vector3 baseDirection = cameraTransform.forward;
+        Vector3 spawnPosition = cameraTransform.position + baseDirection * spawnDistanceFromCamera;
 
-        EnemyAI hitEnemy = FindBestShootTarget(cameraTransform.position, shootDirection);
+        EnemyAI hitEnemy = FindBestShootTarget(cameraTransform.position, baseDirection);
         if (hitEnemy != null)
         {
-            hitEnemy.TakeDamage(projectileDamage);
-            Debug.Log($"Gegner getroffen: {hitEnemy.name}, Schaden: {projectileDamage}");
+            hitEnemy.TakeDamage(equippedWeapon.ShotDamage);
         }
 
         // Projektil als Visualisierung instantiieren
-        Vector3 spawnPosition = cameraTransform.position + shootDirection * spawnDistanceFromCamera;
-        Quaternion spawnRotation = Quaternion.LookRotation(shootDirection, Vector3.up);
+        Quaternion spawnRotation = Quaternion.LookRotation(baseDirection, Vector3.up);
         Projectile projectile = Instantiate(projectilePrefab, spawnPosition, spawnRotation);
-        projectile.Launch(shootDirection, projectileSpeed, gameObject.tag, transform.root);
+        projectile.Launch(baseDirection, equippedWeapon.ProjectileSpeed, gameObject.tag, transform.root);
 
         equippedWeapon.ConsumeShot();
+        PlayShotSound(equippedWeapon);
 
-        nextShotTime = Time.time + shotCooldown;
+        nextShotTime = Time.time + equippedWeapon.TimeBetweenShots;
 
         if (equippedWeapon.NeedsReload)
         {
@@ -263,13 +280,17 @@ public class PlayerShooter : MonoBehaviour
         }
 
         isReloading = true;
+        reloadStartTime = Time.time;
+        reloadDuration = weapon.ReloadDuration;
         reloadEndTime = Time.time + weapon.ReloadDuration;
+        PlayReloadSound(weapon);
         Debug.Log($"Reload gestartet ({weapon.ReloadDuration:0.0}s)");
     }
 
     private void CompleteReload()
     {
         isReloading = false;
+        reloadDuration = 0f;
 
         if (weaponManager == null)
         {
@@ -397,5 +418,25 @@ public class PlayerShooter : MonoBehaviour
                 selfColliders.Add(col);
             }
         }
+    }
+
+    private void PlayShotSound(Weapon weapon)
+    {
+        if (weapon == null || shootAudioSource == null || weapon.ShotSound == null)
+        {
+            return;
+        }
+
+        shootAudioSource.PlayOneShot(weapon.ShotSound, weapon.ShotVolume);
+    }
+
+    private void PlayReloadSound(Weapon weapon)
+    {
+        if (weapon == null || shootAudioSource == null || weapon.ReloadSound == null)
+        {
+            return;
+        }
+
+        shootAudioSource.PlayOneShot(weapon.ReloadSound, weapon.ReloadVolume);
     }
 }

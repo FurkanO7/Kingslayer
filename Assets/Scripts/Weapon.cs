@@ -7,6 +7,16 @@ public class Weapon : MonoBehaviour
     [SerializeField] private int magazineSize = 5;
     [SerializeField] private int totalAmmo = 20;
     [SerializeField] private float reloadDuration = 1.5f;
+    [Header("Firing")]
+    [SerializeField] private int shotDamage = 20;
+    [SerializeField, Min(0.01f)] private float timeBetweenShots = 0.5f;
+    [Header("Audio")]
+    [SerializeField] private AudioClip shotSound;
+    [SerializeField, Range(0f, 1f)] private float shotVolume = 1f;
+    [SerializeField] private AudioClip reloadSound;
+    [SerializeField, Range(0f, 1f)] private float reloadVolume = 1f;
+    [Header("Projectile")]
+    [SerializeField, Min(1f)] private float projectileSpeed = 150f;
 
     private int ammoInMagazine;
     private int reserveAmmo;
@@ -19,6 +29,13 @@ public class Weapon : MonoBehaviour
     public int AmmoInMagazine => ammoInMagazine;
     public int ReserveAmmo => reserveAmmo;
     public float ReloadDuration => reloadDuration;
+    public int ShotDamage => shotDamage;
+    public float TimeBetweenShots => Mathf.Max(0.01f, timeBetweenShots);
+    public AudioClip ShotSound => shotSound;
+    public float ShotVolume => Mathf.Clamp01(shotVolume);
+    public AudioClip ReloadSound => reloadSound;
+    public float ReloadVolume => Mathf.Clamp01(reloadVolume);
+    public float ProjectileSpeed => Mathf.Max(1f, projectileSpeed);
     public bool CanShoot => ammoInMagazine > 0;
     public bool NeedsReload => ammoInMagazine <= 0 && reserveAmmo > 0;
     public bool HasAnyAmmo => (ammoInMagazine + reserveAmmo) > 0;
@@ -76,6 +93,18 @@ public class Weapon : MonoBehaviour
         ammoInMagazine += ammoToLoad;
         reserveAmmo -= ammoToLoad;
         return ammoToLoad > 0;
+    }
+
+    public int AddReserveAmmo(int amount)
+    {
+        if (amount <= 0)
+        {
+            return 0;
+        }
+
+        InitializeAmmoIfNeeded();
+        reserveAmmo += amount;
+        return amount;
     }
 
     private void InitializeAmmoIfNeeded()
