@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 public class WeaponManager : MonoBehaviour
 {
@@ -7,11 +7,11 @@ public class WeaponManager : MonoBehaviour
     public Weapon EquippedWeapon => equippedWeapon;
     public bool HasWeaponEquipped => equippedWeapon != null;
     
+    // Enthaelt die Logik fuer EquipWeapon.
     public void EquipWeapon(Weapon weapon)
     {
         if (weapon == null)
         {
-            Debug.LogWarning("Versucht NULL-Waffe auszurüsten");
             return;
         }
         
@@ -21,22 +21,22 @@ public class WeaponManager : MonoBehaviour
             equippedWeapon.OnUnequipped();
         }
         
-        // Neue Waffe ausrüsten
+        // Neue Waffe ausrÃ¼sten
         equippedWeapon = weapon;
         equippedWeapon.OnEquipped();
-        Debug.Log($"Waffe ausgerüstet: {weapon.WeaponName}");
     }
     
+    // Enthaelt die Logik fuer UnequipWeapon.
     public void UnequipWeapon()
     {
         if (equippedWeapon != null)
         {
             equippedWeapon.OnUnequipped();
-            Debug.Log($"Waffe abgelegt: {equippedWeapon.WeaponName}");
             equippedWeapon = null;
         }
     }
 
+    // Enthaelt die Logik fuer DropEquippedWeapon.
     public bool DropEquippedWeapon(Vector3 worldPosition, Quaternion worldRotation)
     {
         if (equippedWeapon == null)
@@ -58,7 +58,6 @@ public class WeaponManager : MonoBehaviour
             pickup.EnablePickupAfterDrop();
         }
 
-        Debug.Log($"Waffe gedroppt: {weaponToDrop.WeaponName}");
         return true;
     }
 }

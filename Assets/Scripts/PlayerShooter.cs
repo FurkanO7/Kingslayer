@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Collections.Generic;
 
@@ -14,6 +14,7 @@ public class PlayerShooter : MonoBehaviour
     [SerializeField] private Projectile projectilePrefab;
     [SerializeField] private WeaponManager weaponManager;
     [SerializeField] private AudioSource shootAudioSource;
+    [SerializeField] private PlayerHealth playerHealth;
 
     [Header("Shot Settings")]
     [SerializeField] private float spawnDistanceFromCamera = 0.5f;
@@ -52,6 +53,7 @@ public class PlayerShooter : MonoBehaviour
         }
     }
 
+    // Initialisiert Referenzen und Startwerte.
     private void Awake()
     {
         if (shootAudioSource == null)
@@ -59,11 +61,26 @@ public class PlayerShooter : MonoBehaviour
             shootAudioSource = GetComponent<AudioSource>();
         }
 
+        if (playerHealth == null)
+        {
+            playerHealth = GetComponent<PlayerHealth>();
+            if (playerHealth == null)
+            {
+                playerHealth = GetComponentInParent<PlayerHealth>();
+            }
+        }
+
         CacheSelfColliders();
     }
 
+    // Aktualisiert die Logik in jedem Frame.
     private void Update()
     {
+        if (IsPlayerDead())
+        {
+            return;
+        }
+
         if (isReloading)
         {
             if (Time.time >= reloadEndTime)
@@ -78,6 +95,7 @@ public class PlayerShooter : MonoBehaviour
         }
     }
 
+    // Registriert Events und aktiviert benoetigte Eingaben.
     private void OnEnable()
     {
         if (shootAction != null)
@@ -98,6 +116,7 @@ public class PlayerShooter : MonoBehaviour
         }
     }
 
+    // Entfernt Event-Registrierungen und deaktiviert Eingaben.
     private void OnDisable()
     {
         if (shootAction != null)
@@ -118,16 +137,19 @@ public class PlayerShooter : MonoBehaviour
         }
     }
 
+    // Enthaelt die Logik fuer OnMeleePerformed.
     private void OnMeleePerformed(InputAction.CallbackContext context)
     {
         TryMelee();
     }
 
+    // Enthaelt die Logik fuer OnReloadPerformed.
     private void OnReloadPerformed(InputAction.CallbackContext context)
     {
         TryManualReload();
     }
 
+    // Prueft Bedingungen und fuehrt ManualReload nur bei Erfolg aus.
     private void TryManualReload()
     {
         if (isReloading || weaponManager == null)
@@ -153,9 +175,15 @@ public class PlayerShooter : MonoBehaviour
         PlayReloadSound(equippedWeapon);
     }
 
+    // Prueft Bedingungen und fuehrt Shoot nur bei Erfolg aus.
     private void TryShoot()
     {
-        // Prüfe ob Waffe ausgerüstet ist
+        if (IsPlayerDead())
+        {
+            return;
+        }
+
+        // PrÃ¼fe ob Waffe ausgerÃ¼stet ist
         if (weaponManager == null || !weaponManager.HasWeaponEquipped)
         {
             return;
@@ -192,9 +220,14 @@ public class PlayerShooter : MonoBehaviour
         Vector3 spawnPosition = cameraTransform.position + baseDirection * spawnDistanceFromCamera;
 
         EnemyAI hitEnemy = FindBestShootTarget(cameraTransform.position, baseDirection);
+        Boss hitBoss = FindBestBossTarget(cameraTransform.position, baseDirection);
         if (hitEnemy != null)
         {
             hitEnemy.TakeDamage(equippedWeapon.ShotDamage);
+        }
+        else if (hitBoss != null)
+        {
+            hitBoss.TakeDamage(equippedWeapon.ShotDamage);
         }
 
         // Projektil als Visualisierung instantiieren
@@ -213,6 +246,7 @@ public class PlayerShooter : MonoBehaviour
         }
     }
 
+    // Prueft Bedingungen und fuehrt Melee nur bei Erfolg aus.
     private void TryMelee()
     {
         if (Time.time < nextMeleeTime)
@@ -228,6 +262,19 @@ public class PlayerShooter : MonoBehaviour
         Vector3 attackCenter = cameraTransform.position + (cameraTransform.forward * meleeRange);
         HashSet<EnemyAI> alreadyDamaged = new HashSet<EnemyAI>();
         EnemyAI[] enemies = FindObjectsByType<EnemyAI>(FindObjectsSortMode.None);
+
+        Boss[] bosses = FindObjectsByType<Boss>(FindObjectsSortMode.None);
+        foreach (Boss boss in bosses)
+        {
+            if (boss == null) continue;
+            float hitRadius = meleeRadius + boss.HitRadius;
+            if ((boss.AimPoint - attackCenter).sqrMagnitude > hitRadius * hitRadius) continue;
+            Vector3 toTarget = (boss.AimPoint - cameraTransform.position).normalized;
+            if (Vector3.Dot(cameraTransform.forward, toTarget) >= meleeFrontThreshold)
+            {
+                boss.TakeDamage(meleeDamage);
+            }
+        }
 
         foreach (EnemyAI enemy in enemies)
         {
@@ -257,12 +304,12 @@ public class PlayerShooter : MonoBehaviour
 
             enemy.TakeDamage(meleeDamage);
             alreadyDamaged.Add(enemy);
-            Debug.Log($"Nahkampf-Treffer: {enemy.name}, Schaden: {meleeDamage}");
         }
 
         nextMeleeTime = Time.time + meleeCooldown;
     }
 
+    // Startet ReloadIfPossible.
     private void StartReloadIfPossible(Weapon weapon)
     {
         if (weapon == null || isReloading)
@@ -274,7 +321,6 @@ public class PlayerShooter : MonoBehaviour
         {
             if (!weapon.HasAnyAmmo)
             {
-                Debug.Log("Keine Munition mehr.");
             }
             return;
         }
@@ -284,9 +330,9 @@ public class PlayerShooter : MonoBehaviour
         reloadDuration = weapon.ReloadDuration;
         reloadEndTime = Time.time + weapon.ReloadDuration;
         PlayReloadSound(weapon);
-        Debug.Log($"Reload gestartet ({weapon.ReloadDuration:0.0}s)");
     }
 
+    // Schliesst Reload ab.
     private void CompleteReload()
     {
         isReloading = false;
@@ -305,10 +351,10 @@ public class PlayerShooter : MonoBehaviour
 
         if (equippedWeapon.Reload())
         {
-            Debug.Log($"Reload fertig. Munition: {equippedWeapon.AmmoInMagazine}/{equippedWeapon.ReserveAmmo}");
         }
     }
 
+    // Enthaelt die Logik fuer ShouldIgnoreHitCollider.
     private bool ShouldIgnoreHitCollider(Collider hitCollider)
     {
         if (hitCollider == null)
@@ -334,6 +380,36 @@ public class PlayerShooter : MonoBehaviour
         return false;
     }
 
+    // Sucht den naechsten Boss im Schussbereich.
+    private Boss FindBestBossTarget(Vector3 startPosition, Vector3 direction)
+    {
+        Boss[] bosses = FindObjectsByType<Boss>(FindObjectsSortMode.None);
+        Boss bestBoss = null;
+        float bestDistance = spherecastDistance;
+
+        foreach (Boss boss in bosses)
+        {
+            if (boss == null) continue;
+
+            Vector3 toEnemy = boss.AimPoint - startPosition;
+            float forwardDistance = Vector3.Dot(direction, toEnemy);
+            if (forwardDistance < 0f || forwardDistance > spherecastDistance) continue;
+
+            Vector3 closestPointOnRay = startPosition + direction * forwardDistance;
+            float hitRadius = spherecastRadius + boss.HitRadius;
+            if ((boss.AimPoint - closestPointOnRay).sqrMagnitude > hitRadius * hitRadius) continue;
+
+            if (forwardDistance < bestDistance)
+            {
+                bestDistance = forwardDistance;
+                bestBoss = boss;
+            }
+        }
+
+        return bestBoss;
+    }
+
+    // Sucht nach BestShootTarget.
     private EnemyAI FindBestShootTarget(Vector3 startPosition, Vector3 direction)
     {
         EnemyAI[] enemies = FindObjectsByType<EnemyAI>(FindObjectsSortMode.None);
@@ -376,6 +452,7 @@ public class PlayerShooter : MonoBehaviour
         return bestEnemy;
     }
 
+    // Prueft den Zustand: ObstacleBlockingShot.
     private bool IsObstacleBlockingShot(Vector3 startPosition, Vector3 targetPosition, EnemyAI targetEnemy)
     {
         Vector3 directionToTarget = targetPosition - startPosition;
@@ -406,6 +483,7 @@ public class PlayerShooter : MonoBehaviour
         return false;
     }
 
+    // Speichert Referenzen fuer SelfColliders zwischen.
     private void CacheSelfColliders()
     {
         selfColliders.Clear();
@@ -420,6 +498,7 @@ public class PlayerShooter : MonoBehaviour
         }
     }
 
+    // Spielt ShotSound ab.
     private void PlayShotSound(Weapon weapon)
     {
         if (weapon == null || shootAudioSource == null || weapon.ShotSound == null)
@@ -430,6 +509,7 @@ public class PlayerShooter : MonoBehaviour
         shootAudioSource.PlayOneShot(weapon.ShotSound, weapon.ShotVolume);
     }
 
+    // Spielt ReloadSound ab.
     private void PlayReloadSound(Weapon weapon)
     {
         if (weapon == null || shootAudioSource == null || weapon.ReloadSound == null)
@@ -438,5 +518,11 @@ public class PlayerShooter : MonoBehaviour
         }
 
         shootAudioSource.PlayOneShot(weapon.ReloadSound, weapon.ReloadVolume);
+    }
+
+    // Prueft den Zustand: PlayerDead.
+    private bool IsPlayerDead()
+    {
+        return playerHealth != null && playerHealth.IsDead;
     }
 }

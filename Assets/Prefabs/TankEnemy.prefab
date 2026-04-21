@@ -156,16 +156,10 @@ MonoBehaviour:
   playerTag: Player
   projectileSpawn: {fileID: 0}
   projectilePrefab: {fileID: -2166008512583293118, guid: 8717401cc9daa4a43ba2e01e74060d78, type: 3}
-  detectionRange: 7.5
+  detectionRange: 18.02
   attackRange: 5
   repathInterval: 1
-  projectileSpeed: 20
-  timeBetweenShots: 1
-  minBurstShots: 1
-  maxBurstShots: 2
   meleeOnly: 1
-  meleeDamage: 10
-  timeBetweenMeleeHits: 1
   maxHealth: 250
   hitBlinkColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!136 &4520797573450117820

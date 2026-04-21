@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class PlayerWeaponDrop : MonoBehaviour
@@ -6,6 +6,7 @@ public class PlayerWeaponDrop : MonoBehaviour
     [SerializeField] private InputActionReference dropAction;
     [SerializeField] private WeaponManager weaponManager;
 
+    // Registriert Events und aktiviert benoetigte Eingaben.
     private void OnEnable()
     {
         if (dropAction != null)
@@ -15,6 +16,7 @@ public class PlayerWeaponDrop : MonoBehaviour
         }
     }
 
+    // Entfernt Event-Registrierungen und deaktiviert Eingaben.
     private void OnDisable()
     {
         if (dropAction != null)
@@ -24,11 +26,13 @@ public class PlayerWeaponDrop : MonoBehaviour
         }
     }
 
+    // Enthaelt die Logik fuer OnDropPerformed.
     private void OnDropPerformed(InputAction.CallbackContext context)
     {
         TryDropWeapon();
     }
 
+    // Prueft Bedingungen und fuehrt DropWeapon nur bei Erfolg aus.
     private void TryDropWeapon()
     {
         if (weaponManager == null || !weaponManager.HasWeaponEquipped)

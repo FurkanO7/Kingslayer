@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 public class SimplePrefabSpawner : MonoBehaviour
 {
@@ -8,6 +8,7 @@ public class SimplePrefabSpawner : MonoBehaviour
     private float nextSpawnTime;
     private GameObject currentSpawnedObject;
 
+    // Aktualisiert die Logik in jedem Frame.
     private void Update()
     {
         if (prefabToSpawn == null)

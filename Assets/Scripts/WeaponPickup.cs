@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class WeaponPickup : MonoBehaviour
@@ -10,11 +10,13 @@ public class WeaponPickup : MonoBehaviour
     private bool playerInRange;
     private Collider triggerCollider;
 
+    // Initialisiert Referenzen und Startwerte.
     private void Awake()
     {
         CacheTriggerCollider();
     }
     
+    // Registriert Events und aktiviert benoetigte Eingaben.
     private void OnEnable()
     {
         if (pickupAction != null)
@@ -24,6 +26,7 @@ public class WeaponPickup : MonoBehaviour
         }
     }
     
+    // Entfernt Event-Registrierungen und deaktiviert Eingaben.
     private void OnDisable()
     {
         if (pickupAction != null)
@@ -33,12 +36,12 @@ public class WeaponPickup : MonoBehaviour
         }
     }
     
+    // Initialisiert Referenzen und Startzustand beim Szenenstart.
     private void Start()
     {
         weapon = GetComponent<Weapon>();
         if (weapon == null)
         {
-            Debug.LogError("WeaponPickup: Weapon Script nicht auf diesem Objekt gefunden!");
             enabled = false;
             return;
         }
@@ -46,6 +49,7 @@ public class WeaponPickup : MonoBehaviour
         CacheTriggerCollider();
     }
     
+    // Reagiert auf Trigger-Eintritte.
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Player"))
@@ -57,6 +61,7 @@ public class WeaponPickup : MonoBehaviour
         }
     }
     
+    // Reagiert auf Trigger-Austritte.
     private void OnTriggerExit(Collider other)
     {
         if (other.CompareTag("Player"))
@@ -67,6 +72,7 @@ public class WeaponPickup : MonoBehaviour
         }
     }
     
+    // Enthaelt die Logik fuer OnPickupPerformed.
     private void OnPickupPerformed(InputAction.CallbackContext context)
     {
         if (playerInRange)
@@ -75,6 +81,7 @@ public class WeaponPickup : MonoBehaviour
         }
     }
     
+    // Enthaelt die Logik fuer PickupWeapon.
     private void PickupWeapon()
     {
         WeaponManager weaponManager = FindFirstObjectByType<WeaponManager>();
@@ -91,7 +98,7 @@ public class WeaponPickup : MonoBehaviour
             transform.localPosition = Vector3.zero;
             transform.localRotation = Quaternion.identity;
             
-            // Deaktiviere nur den Trigger-Collider für Pickup
+            // Deaktiviere nur den Trigger-Collider fÃ¼r Pickup
             if (triggerCollider != null)
             {
                 triggerCollider.enabled = false;
@@ -104,10 +111,10 @@ public class WeaponPickup : MonoBehaviour
         }
         else
         {
-            Debug.LogError("WeaponPickup: WeaponManager nicht gefunden!");
         }
     }
 
+    // Aktiviert PickupAfterDrop.
     public void EnablePickupAfterDrop()
     {
         playerInRange = false;
@@ -121,6 +128,7 @@ public class WeaponPickup : MonoBehaviour
         enabled = true;
     }
 
+    // Speichert Referenzen fuer TriggerCollider zwischen.
     private void CacheTriggerCollider()
     {
         if (triggerCollider != null)

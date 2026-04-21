@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -21,19 +21,19 @@ public class EnemyAI : MonoBehaviour
 
     [Header("Detection")]
     [SerializeField] private float detectionRange = 7.5f;
-    [SerializeField] private float attackRange = 1f;
+    [SerializeField] private float attackRange = 5f;
     [SerializeField] private float repathInterval = 1f;
 
     [Header("Shooting")]
-    [SerializeField] private float projectileSpeed = 20f;
-    [SerializeField] private float timeBetweenShots = 1f;
-    [SerializeField] private int minBurstShots = 1;
-    [SerializeField] private int maxBurstShots = 2;
+    private float projectileSpeed = 20f;
+    private float timeBetweenShots = 1f;
+    private int minBurstShots = 1;
+    private int maxBurstShots = 2;
 
     [Header("Melee")]
     [SerializeField] private bool meleeOnly;
-    [SerializeField] private int meleeDamage = 20;
-    [SerializeField] private float timeBetweenMeleeHits = 0.8f;
+    private int meleeDamage = 20;
+    private float timeBetweenMeleeHits = 0.8f;
 
     [Header("Reposition")]
     private float repositionMinDistance = 2.5f;
@@ -94,6 +94,7 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
+    // Initialisiert Referenzen und Startwerte.
     private void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
@@ -122,6 +123,7 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
+    // Aktualisiert die Logik in jedem Frame.
     private void Update()
     {
         EnsurePlayerReference();
@@ -143,6 +145,7 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
+    // Stellt sicher, dass PlayerReference vorhanden ist.
     private void EnsurePlayerReference()
     {
         if (playerTransform != null)
@@ -157,6 +160,7 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
+    // Enthaelt die Logik fuer UpdateSearching.
     private void UpdateSearching()
     {
         if (CanSeePlayerInDetectionRange())
@@ -205,6 +209,7 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
+    // Setzt den Wert oder Zustand fuer NextSearchDestination.
     private void SetNextSearchDestination()
     {
         Vector3 randomPoint = searchCenter + Random.insideUnitSphere * searchRadius;
@@ -214,6 +219,7 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
+    // Enthaelt die Logik fuer UpdateChasing.
     private void UpdateChasing()
     {
         if (playerTransform == null)
@@ -243,6 +249,7 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
+    // Enthaelt die Logik fuer UpdateAttacking.
     private void UpdateAttacking()
     {
         if (playerTransform == null)
@@ -278,6 +285,7 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
+    // Prueft Bedingungen und fuehrt MeleeAttack nur bei Erfolg aus.
     private void TryMeleeAttack()
     {
         if (Time.time < nextMeleeHitTime)
@@ -295,6 +303,7 @@ public class EnemyAI : MonoBehaviour
         nextMeleeHitTime = Time.time + timeBetweenMeleeHits;
     }
 
+    // Liefert PlayerHealth zurueck.
     private PlayerHealth GetPlayerHealth()
     {
         if (cachedPlayerHealth != null)
@@ -316,6 +325,7 @@ public class EnemyAI : MonoBehaviour
         return cachedPlayerHealth;
     }
 
+    // Enthaelt die Logik fuer UpdateRepositioning.
     private void UpdateRepositioning()
     {
         if (playerTransform == null)
@@ -337,6 +347,7 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
+    // Prueft, ob SeePlayerInDetectionRange moeglich ist.
     private bool CanSeePlayerInDetectionRange()
     {
         if (playerTransform == null)
@@ -347,6 +358,7 @@ public class EnemyAI : MonoBehaviour
         return Vector3.Distance(transform.position, playerTransform.position) <= detectionRange;
     }
 
+    // Enthaelt die Logik fuer FireBurstRoutine.
     private IEnumerator FireBurstRoutine()
     {
         burstRoutineRunning = true;
@@ -372,6 +384,7 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
+    // Enthaelt die Logik fuer FireSingleShot.
     private void FireSingleShot()
     {
         if (projectilePrefab == null || playerTransform == null)
@@ -386,6 +399,7 @@ public class EnemyAI : MonoBehaviour
         projectile.Launch(direction, projectileSpeed, gameObject.tag, transform.root);
     }
 
+    // Startet Reposition.
     private void StartReposition()
     {
         if (playerTransform == null)
@@ -418,6 +432,7 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
+    // Enthaelt die Logik fuer FaceTarget.
     private void FaceTarget(Vector3 targetPosition)
     {
         Vector3 flatDirection = targetPosition - transform.position;
@@ -432,6 +447,7 @@ public class EnemyAI : MonoBehaviour
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 12f);
     }
 
+    // Prueft Bedingungen und fuehrt GetNavMeshPoint nur bei Erfolg aus.
     private bool TryGetNavMeshPoint(Vector3 position, float maxDistance, out Vector3 navPoint)
     {
         if (NavMesh.SamplePosition(position, out NavMeshHit hit, maxDistance, NavMesh.AllAreas))
@@ -444,22 +460,24 @@ public class EnemyAI : MonoBehaviour
         return false;
     }
 
+    // Prueft, ob UseAgent moeglich ist.
     private bool CanUseAgent()
     {
         return agent != null && agent.isActiveAndEnabled && agent.isOnNavMesh;
     }
 
+    // Enthaelt die Logik fuer TakeDamage.
     public void TakeDamage(int amount)
     {
         currentHealth -= amount;
         TriggerHitBlink();
-        Debug.Log($"{gameObject.name} wurde getroffen! Leben: {currentHealth}/{maxHealth}");
         if (currentHealth <= 0)
         {
             Destroy(gameObject);
         }
     }
 
+    // Enthaelt die Logik fuer TriggerHitBlink.
     private void TriggerHitBlink()
     {
         if (blinkMaterials == null || blinkMaterials.Length == 0)
@@ -475,6 +493,7 @@ public class EnemyAI : MonoBehaviour
         hitBlinkRoutine = StartCoroutine(HitBlinkRoutine());
     }
 
+    // Enthaelt die Logik fuer HitBlinkRoutine.
     private IEnumerator HitBlinkRoutine()
     {
         for (int i = 0; i < blinkMaterials.Length; i++)
@@ -498,6 +517,7 @@ public class EnemyAI : MonoBehaviour
         hitBlinkRoutine = null;
     }
 
+    // Zeichnet Debug-Gizmos fuer die ausgewaehlte Komponente.
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.yellow;

@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using TMPro;
 
 public class PickupPromptHUD : MonoBehaviour
@@ -9,12 +9,14 @@ public class PickupPromptHUD : MonoBehaviour
 
     public static PickupPromptHUD Instance { get; private set; }
 
+    // Initialisiert Referenzen und Startwerte.
     private void Awake()
     {
         Instance = this;
         Hide();
     }
 
+    // Enthaelt die Logik fuer Show.
     public void Show(string weaponName)
     {
         if (promptRoot != null)
@@ -24,6 +26,7 @@ public class PickupPromptHUD : MonoBehaviour
             weaponNameText.text = weaponName + "\n" + promptFormat;
     }
 
+    // Enthaelt die Logik fuer Hide.
     public void Hide()
     {
         if (promptRoot != null)

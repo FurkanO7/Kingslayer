@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using TMPro;
 
 public class PlayerAmmoHUD : MonoBehaviour
@@ -12,11 +12,13 @@ public class PlayerAmmoHUD : MonoBehaviour
     private int lastMagazine = -1;
     private int lastReserve = -1;
 
+    // Aktualisiert die Logik in jedem Frame.
     private void Update()
     {
         RefreshIfChanged();
     }
 
+    // Setzt den Wert oder Zustand fuer WeaponManager.
     public void SetWeaponManager(WeaponManager newWeaponManager)
     {
         weaponManager = newWeaponManager;
@@ -26,6 +28,7 @@ public class PlayerAmmoHUD : MonoBehaviour
         RefreshIfChanged();
     }
 
+    // Aktualisiert IfChanged.
     private void RefreshIfChanged()
     {
         if (ammoText == null)

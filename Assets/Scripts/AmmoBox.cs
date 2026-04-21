@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 public class AmmoBox : MonoBehaviour
 {
@@ -6,6 +6,7 @@ public class AmmoBox : MonoBehaviour
     [SerializeField] private int ammoAmount = 10;
     [SerializeField] private bool consumeOnUse = true;
 
+    // Reagiert auf Trigger-Eintritte.
     private void OnTriggerEnter(Collider other)
     {
         if (!other.CompareTag("Player"))
@@ -41,7 +42,6 @@ public class AmmoBox : MonoBehaviour
             return;
         }
 
-        Debug.Log($"AmmoBox aufgehoben: +{grantedAmmo} Munition");
 
         if (consumeOnUse)
         {

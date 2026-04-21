@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class MenuPanelOpener : MonoBehaviour
@@ -8,6 +8,7 @@ public class MenuPanelOpener : MonoBehaviour
     [SerializeField] private bool hidePanelsOnStart = true;
     [SerializeField] private bool forceVisibleCursorInMenu = true;
 
+    // Initialisiert Referenzen und Startzustand beim Szenenstart.
     private void Start()
     {
         if (forceVisibleCursorInMenu)
@@ -24,6 +25,7 @@ public class MenuPanelOpener : MonoBehaviour
         SetPanelActive(settingsPanel, false);
     }
 
+    // Enthaelt die Logik fuer OnPlayClicked.
     public void OnPlayClicked()
     {
         if (forceVisibleCursorInMenu)
@@ -34,11 +36,13 @@ public class MenuPanelOpener : MonoBehaviour
         SetPanelActive(levelSelectionPanel, true);
     }
 
+    // Enthaelt die Logik fuer OnReturnFromLevelSelectionClicked.
     public void OnReturnFromLevelSelectionClicked()
     {
         SetPanelActive(levelSelectionPanel, false);
     }
 
+    // Enthaelt die Logik fuer OnSettingsClicked.
     public void OnSettingsClicked()
     {
         if (forceVisibleCursorInMenu)
@@ -49,21 +53,25 @@ public class MenuPanelOpener : MonoBehaviour
         SetPanelActive(settingsPanel, true);
     }
 
+    // Enthaelt die Logik fuer OnReturnFromSettingsClicked.
     public void OnReturnFromSettingsClicked()
     {
         SetPanelActive(settingsPanel, false);
     }
 
+    // Enthaelt die Logik fuer OnExitClicked.
     public void OnExitClicked()
     {
         Application.Quit();
     }
 
+    // Enthaelt die Logik fuer OnLoadTheRangeClicked.
     public void OnLoadTheRangeClicked()
     {
         SceneManager.LoadScene("TheRange");
     }
 
+    // Setzt den Wert oder Zustand fuer PanelActive.
     private void SetPanelActive(GameObject panel, bool isActive)
     {
         if (panel == null)
@@ -79,6 +87,7 @@ public class MenuPanelOpener : MonoBehaviour
         panel.SetActive(isActive);
     }
 
+    // Enthaelt die Logik fuer ActivateParents.
     private void ActivateParents(Transform child)
     {
         Transform current = child.parent;
@@ -92,6 +101,7 @@ public class MenuPanelOpener : MonoBehaviour
         }
     }
 
+    // Enthaelt die Logik fuer ShowCursor.
     private void ShowCursor()
     {
         Cursor.lockState = CursorLockMode.None;

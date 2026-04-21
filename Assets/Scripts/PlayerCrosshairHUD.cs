@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 public class PlayerCrosshairHUD : MonoBehaviour
 {
@@ -6,11 +6,13 @@ public class PlayerCrosshairHUD : MonoBehaviour
     [SerializeField] private GameObject defaultCrosshair;
     private bool hadWeaponLastFrame;
 
+    // Aktualisiert die Logik in jedem Frame.
     private void Update()
     {
         RefreshCrosshair();
     }
 
+    // Setzt den Wert oder Zustand fuer WeaponManager.
     public void SetWeaponManager(WeaponManager newWeaponManager)
     {
         weaponManager = newWeaponManager;
@@ -18,6 +20,7 @@ public class PlayerCrosshairHUD : MonoBehaviour
         RefreshCrosshair();
     }
 
+    // Aktualisiert Crosshair.
     private void RefreshCrosshair()
     {
         bool hasWeapon = weaponManager != null && weaponManager.HasWeaponEquipped && weaponManager.EquippedWeapon != null;
