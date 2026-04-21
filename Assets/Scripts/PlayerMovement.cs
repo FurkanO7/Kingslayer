@@ -34,6 +34,7 @@ public class PlayerMovement : MonoBehaviour
     private Vector2 lookInput;
     private float pitch;
     private bool jumpPressed;
+    private bool lookEnabled = true;
 
     private void Awake()
     {
@@ -163,6 +164,12 @@ public class PlayerMovement : MonoBehaviour
 
     private void OnLookPerformed(InputAction.CallbackContext context)
     {
+        if (!lookEnabled)
+        {
+            lookInput = Vector2.zero;
+            return;
+        }
+
         lookInput = context.ReadValue<Vector2>();
     }
 
@@ -183,6 +190,12 @@ public class PlayerMovement : MonoBehaviour
 
     private void ApplyLook()
     {
+        if (!lookEnabled)
+        {
+            lookInput = Vector2.zero;
+            return;
+        }
+
         if (cameraTransform == null)
         {
             return;
@@ -196,6 +209,15 @@ public class PlayerMovement : MonoBehaviour
         pitch -= mouseY;
         pitch = Mathf.Clamp(pitch, minPitch, maxPitch);
         cameraTransform.localRotation = Quaternion.Euler(pitch, 0f, 0f);
+    }
+
+    public void SetLookEnabled(bool isEnabled)
+    {
+        lookEnabled = isEnabled;
+        if (!lookEnabled)
+        {
+            lookInput = Vector2.zero;
+        }
     }
 
     private bool IsGrounded()

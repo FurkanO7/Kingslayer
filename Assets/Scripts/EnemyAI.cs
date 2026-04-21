@@ -21,7 +21,7 @@ public class EnemyAI : MonoBehaviour
 
     [Header("Detection")]
     [SerializeField] private float detectionRange = 7.5f;
-    [SerializeField] private float attackRange = 5f;
+    [SerializeField] private float attackRange = 1f;
     [SerializeField] private float repathInterval = 1f;
 
     [Header("Shooting")]
@@ -29,6 +29,11 @@ public class EnemyAI : MonoBehaviour
     [SerializeField] private float timeBetweenShots = 1f;
     [SerializeField] private int minBurstShots = 1;
     [SerializeField] private int maxBurstShots = 2;
+
+    [Header("Melee")]
+    [SerializeField] private bool meleeOnly;
+    [SerializeField] private int meleeDamage = 20;
+    [SerializeField] private float timeBetweenMeleeHits = 0.8f;
 
     [Header("Reposition")]
     private float repositionMinDistance = 2.5f;
@@ -55,10 +60,12 @@ public class EnemyAI : MonoBehaviour
     private bool burstRoutineRunning;
     private bool isSearchPaused;
     private float searchResumeTime;
+    private float nextMeleeHitTime;
     private Material[] blinkMaterials;
     private Color[] defaultBlinkColors;
     private Coroutine hitBlinkRoutine;
     private Collider mainCollider;
+    private PlayerHealth cachedPlayerHealth;
 
     public Vector3 AimPoint
     {
@@ -259,10 +266,54 @@ public class EnemyAI : MonoBehaviour
 
         FaceTarget(playerTransform.position);
 
+        if (meleeOnly)
+        {
+            TryMeleeAttack();
+            return;
+        }
+
         if (!burstRoutineRunning)
         {
             StartCoroutine(FireBurstRoutine());
         }
+    }
+
+    private void TryMeleeAttack()
+    {
+        if (Time.time < nextMeleeHitTime)
+        {
+            return;
+        }
+
+        PlayerHealth playerHealth = GetPlayerHealth();
+        if (playerHealth == null)
+        {
+            return;
+        }
+
+        playerHealth.TakeDamage(meleeDamage);
+        nextMeleeHitTime = Time.time + timeBetweenMeleeHits;
+    }
+
+    private PlayerHealth GetPlayerHealth()
+    {
+        if (cachedPlayerHealth != null)
+        {
+            return cachedPlayerHealth;
+        }
+
+        if (playerTransform == null)
+        {
+            return null;
+        }
+
+        cachedPlayerHealth = playerTransform.GetComponent<PlayerHealth>();
+        if (cachedPlayerHealth == null)
+        {
+            cachedPlayerHealth = playerTransform.GetComponentInParent<PlayerHealth>();
+        }
+
+        return cachedPlayerHealth;
     }
 
     private void UpdateRepositioning()
