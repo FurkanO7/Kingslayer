@@ -8,7 +8,7 @@ public class Boss : MonoBehaviour
     [SerializeField] private string playerTag = "Player";
 
     [Header("Boss Movement")]
-    [SerializeField] private bool keepBossStaticInAir = true;
+    private bool keepBossStaticInAir = true;
 
     [Header("Strike Timing")]
     [SerializeField] private float strikeInterval = 2f;
@@ -19,7 +19,7 @@ public class Boss : MonoBehaviour
     [SerializeField] private float strikeRadius = 2.5f;
 
     [Header("Ground Targeting")]
-    [SerializeField] private LayerMask groundMask = ~0;
+    private LayerMask groundMask = ~0;
     [SerializeField] private float raycastStartHeight = 30f;
     [SerializeField] private float raycastDistance = 120f;
 
@@ -43,7 +43,6 @@ public class Boss : MonoBehaviour
     [Header("Victory")]
     [SerializeField] private GameObject victoryPanel;
 
-    // Gibt an ob der Boss besiegt wurde und der Victory-Screen aktiv ist.
     public static bool IsVictory { get; private set; }
 
     private float nextStrikeTime;
@@ -97,7 +96,7 @@ public class Boss : MonoBehaviour
         StartCoroutine(StrikeRoutine());
     }
 
-    // Enthaelt die Logik fuer LateUpdate.
+    // Enthält die Logik für LateUpdate.
     private void LateUpdate()
     {
         if (!keepBossStaticInAir)
@@ -142,7 +141,7 @@ public class Boss : MonoBehaviour
         }
     }
 
-    // Liefert GroundPoint zurueck und ignoriert dabei den eigenen Boss-Collider.
+    // Liefert GroundPoint zurück und ignoriert dabei den eigenen Boss-Collider.
     private Vector3 FindGroundPoint(Vector3 around)
     {
         Vector3 rayStart = around + Vector3.up * raycastStartHeight;
@@ -155,7 +154,7 @@ public class Boss : MonoBehaviour
         return around;
     }
 
-    // Enthalt die Logik fuer SpawnWarning.
+    // Enthält die Logik für SpawnWarning.
     private GameObject SpawnWarning(Vector3 strikePoint)
     {
         if (warningCirclePrefab == null)
@@ -205,7 +204,7 @@ public class Boss : MonoBehaviour
         }
     }
 
-    // Spielt den Explosions-Sound beim Einschlag ab.
+    // Spielt Explosions-Sound beim Einschlag ab.
     private void PlayExplosionSound(Vector3 location)
     {
         if (audioSource == null || explosionSound == null)
@@ -217,13 +216,13 @@ public class Boss : MonoBehaviour
         audioSource.PlayOneShot(explosionSound);
     }
 
-    // Mittelpunkt des Bosses als Zielpunkt fuer die Trefferberechnung.
+    // Mittelpunkt des Bosses als Zielpunkt für die Trefferberechnung.
     public Vector3 AimPoint => transform.position;
 
-    // Trefferradius des Bosses fuer die Schusserkennung.
+    // Trefferradius des Bosses für die Schusserkennung.
     public float HitRadius => 1.5f;
 
-    // Verarbeitet eingehenden Schaden und zerstoert den Boss bei 0 HP.
+    // Verarbeitet eingehenden Schaden und zerstört den Boss bei 0 HP.
     public void TakeDamage(int amount)
     {
         currentHealth -= amount;
@@ -235,7 +234,7 @@ public class Boss : MonoBehaviour
         }
     }
 
-    // Zeigt das Victory-Panel an, pausiert das Spiel und gibt den Cursor frei.
+    // Zeigt Victory-Panel an, pausiert das Spiel und gibt Cursor frei.
     private void ShowVictory()
     {
         IsVictory = true;
@@ -250,7 +249,7 @@ public class Boss : MonoBehaviour
         Cursor.lockState = CursorLockMode.None;
     }
 
-    // Loest den Hit-Blink-Effekt aus.
+    // Löst Hit-Blink-Effekt aus.
     private void TriggerHitBlink()
     {
         if (blinkMaterials == null || blinkMaterials.Length == 0)
@@ -266,7 +265,7 @@ public class Boss : MonoBehaviour
         hitBlinkRoutine = StartCoroutine(HitBlinkRoutine());
     }
 
-    // Blinkt kurz in hitBlinkColor und kehrt zur Originalfarbe zurueck.
+    // Blinkt kurz in hitBlinkColor
     private IEnumerator HitBlinkRoutine()
     {
         for (int i = 0; i < blinkMaterials.Length; i++)

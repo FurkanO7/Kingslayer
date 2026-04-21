@@ -34,7 +34,6 @@ public class EscapePanelToggle : MonoBehaviour
         ApplyCursorState(isPanelOpen: panel != null && panel.activeSelf);
     }
 
-    // Registriert Events und aktiviert benoetigte Eingaben.
     private void OnEnable()
     {
         InputAction action = GetToggleAction();
@@ -47,7 +46,7 @@ public class EscapePanelToggle : MonoBehaviour
         action.Enable();
     }
 
-    // Entfernt Event-Registrierungen und deaktiviert Eingaben.
+    // deaktiviert Eingaben.
     private void OnDisable()
     {
         InputAction action = GetToggleAction();
@@ -60,7 +59,7 @@ public class EscapePanelToggle : MonoBehaviour
         action.Disable();
     }
 
-    // Schaltet Panel zwischen den Zustaenden um.
+    // Schaltet Panel zwischen den Zuständen um.
     public void TogglePanel()
     {
         if (IsPlayerDead())
@@ -89,20 +88,18 @@ public class EscapePanelToggle : MonoBehaviour
         ApplyCursorState(shouldOpen);
     }
 
-    // Enthaelt die Logik fuer OnMenuButtonClicked.
+
     public void OnMenuButtonClicked()
     {
         TogglePanel();
     }
 
-    // Enthaelt die Logik fuer OnLoadMainMenuClicked.
     public void OnLoadMainMenuClicked()
     {
         Time.timeScale = 1f;
         SceneManager.LoadScene("MainMenu");
     }
 
-    // Oeffnet Panel.
     public void OpenPanel()
     {
         if (panel != null && !panel.activeSelf)
@@ -111,7 +108,6 @@ public class EscapePanelToggle : MonoBehaviour
         }
     }
 
-    // Schliesst Panel.
     public void ClosePanel()
     {
         if (panel != null && panel.activeSelf)
@@ -120,7 +116,6 @@ public class EscapePanelToggle : MonoBehaviour
         }
     }
 
-    // Enthaelt die Logik fuer OnTogglePerformed.
     private void OnTogglePerformed(InputAction.CallbackContext _)
     {
         if (IsPlayerDead())
@@ -131,7 +126,6 @@ public class EscapePanelToggle : MonoBehaviour
         TogglePanel();
     }
 
-    // Liefert ToggleAction zurueck.
     private InputAction GetToggleAction()
     {
         if (toggleAction != null && toggleAction.action != null)
@@ -142,7 +136,6 @@ public class EscapePanelToggle : MonoBehaviour
         return null;
     }
 
-    // Wendet CursorState an.
     private void ApplyCursorState(bool isPanelOpen)
     {
         if (isPanelOpen)
@@ -162,7 +155,7 @@ public class EscapePanelToggle : MonoBehaviour
         }
     }
 
-    // Prueft den Zustand: PlayerDead.
+    // Prüft ob Player dead ist
     private bool IsPlayerDead()
     {
         return playerHealth != null && playerHealth.IsDead;

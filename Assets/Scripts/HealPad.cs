@@ -6,7 +6,6 @@ public class HealPad : MonoBehaviour
     [SerializeField] private int healAmount = 50;
     [SerializeField] private bool consumeOnUse = true;
 
-    // Reagiert auf Trigger-Eintritte.
     private void OnTriggerEnter(Collider other)
     {
         if (!other.CompareTag("Player"))
@@ -25,7 +24,12 @@ public class HealPad : MonoBehaviour
             return;
         }
 
-        playerHealth.Heal(healAmount);
+        bool wasHealed = playerHealth.Heal(healAmount);
+
+        if (!wasHealed)
+        {
+            return;
+        }
 
         if (consumeOnUse)
         {

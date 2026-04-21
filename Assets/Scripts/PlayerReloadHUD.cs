@@ -10,13 +10,11 @@ public class PlayerReloadHUD : MonoBehaviour
     private PlayerShooter playerShooter;
     private bool wasReloadingLastFrame;
 
-    // Initialisiert Referenzen und Startwerte.
     private void Awake()
     {
         playerShooter = FindFirstObjectByType<PlayerShooter>();
     }
 
-    // Aktualisiert die Logik in jedem Frame.
     private void Update()
     {
         if (playerShooter == null)

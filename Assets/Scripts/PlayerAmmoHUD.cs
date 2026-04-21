@@ -12,13 +12,12 @@ public class PlayerAmmoHUD : MonoBehaviour
     private int lastMagazine = -1;
     private int lastReserve = -1;
 
-    // Aktualisiert die Logik in jedem Frame.
     private void Update()
     {
         RefreshIfChanged();
     }
 
-    // Setzt den Wert oder Zustand fuer WeaponManager.
+    // Setzt den Wert oder Zustand für WeaponManager.
     public void SetWeaponManager(WeaponManager newWeaponManager)
     {
         weaponManager = newWeaponManager;
@@ -28,7 +27,7 @@ public class PlayerAmmoHUD : MonoBehaviour
         RefreshIfChanged();
     }
 
-    // Aktualisiert IfChanged.
+    // Aktualisiert die Anzeige, wenn sich der Zustand geändert hat.
     private void RefreshIfChanged()
     {
         if (ammoText == null)

@@ -10,7 +10,6 @@ public class LevelGoal : MonoBehaviour
     [SerializeField] private bool unlockNextLevel = true;
     [SerializeField] private int thisLevelNumber = 1; // 1 unlocks Level 2, 2 unlocks Level 3
 
-    // Reagiert auf Trigger-Eintritte.
     private void OnTriggerEnter(Collider other)
     {
         if (!other.CompareTag(playerTag))

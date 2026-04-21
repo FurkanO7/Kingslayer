@@ -40,15 +40,13 @@ public class Weapon : MonoBehaviour
     public bool NeedsReload => ammoInMagazine <= 0 && reserveAmmo > 0;
     public bool HasAnyAmmo => (ammoInMagazine + reserveAmmo) > 0;
 
-    // Initialisiert Referenzen und Startwerte.
     private void Awake()
     {
         weaponColliders = GetComponents<Collider>();
         weaponRigidbody = GetComponent<Rigidbody>();
         InitializeAmmoIfNeeded();
     }
-    
-    // Enthaelt die Logik fuer OnEquipped.
+
     public void OnEquipped()
     {
         InitializeAmmoIfNeeded();
@@ -56,20 +54,17 @@ public class Weapon : MonoBehaviour
         SetCarriedState();
     }
     
-    // Enthaelt die Logik fuer OnUnequipped.
     public void OnUnequipped()
     {
         gameObject.SetActive(false);
     }
 
-    // Enthaelt die Logik fuer PrepareForDrop.
     public void PrepareForDrop()
     {
         gameObject.SetActive(true);
         SetDroppedState();
     }
 
-    // Enthaelt die Logik fuer ConsumeShot.
     public bool ConsumeShot()
     {
         if (ammoInMagazine <= 0)
@@ -81,7 +76,6 @@ public class Weapon : MonoBehaviour
         return true;
     }
 
-    // Enthaelt die Logik fuer Reload.
     public bool Reload()
     {
         if (reserveAmmo <= 0)
@@ -101,7 +95,6 @@ public class Weapon : MonoBehaviour
         return ammoToLoad > 0;
     }
 
-    // Enthaelt die Logik fuer AddReserveAmmo.
     public int AddReserveAmmo(int amount)
     {
         if (amount <= 0)
@@ -114,7 +107,6 @@ public class Weapon : MonoBehaviour
         return amount;
     }
 
-    // Enthaelt die Logik fuer InitializeAmmoIfNeeded.
     private void InitializeAmmoIfNeeded()
     {
         if (ammoInitialized)
@@ -137,7 +129,6 @@ public class Weapon : MonoBehaviour
         ammoInitialized = true;
     }
 
-    // Setzt den Wert oder Zustand fuer CarriedState.
     private void SetCarriedState()
     {
         EnsureRigidbody();
@@ -156,7 +147,6 @@ public class Weapon : MonoBehaviour
         SetSolidCollidersEnabled(false);
     }
 
-    // Setzt den Wert oder Zustand fuer DroppedState.
     private void SetDroppedState()
     {
         EnsureRigidbody();
@@ -175,7 +165,6 @@ public class Weapon : MonoBehaviour
         SetSolidCollidersEnabled(true);
     }
 
-    // Setzt den Wert oder Zustand fuer SolidCollidersEnabled.
     private void SetSolidCollidersEnabled(bool enabled)
     {
         if (weaponColliders == null)
@@ -195,7 +184,6 @@ public class Weapon : MonoBehaviour
         }
     }
 
-    // Stellt sicher, dass Rigidbody vorhanden ist.
     private void EnsureRigidbody()
     {
         if (weaponRigidbody != null)

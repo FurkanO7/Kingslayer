@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -20,9 +20,9 @@ public class EnemyAI : MonoBehaviour
     [SerializeField] private Projectile projectilePrefab;
 
     [Header("Detection")]
-    [SerializeField] private float detectionRange = 7.5f;
-    [SerializeField] private float attackRange = 5f;
-    [SerializeField] private float repathInterval = 1f;
+    [SerializeField] private float detectionRange = 18f;
+    [SerializeField] private float attackRange = 9f;
+    private float repathInterval = 1f;
 
     [Header("Shooting")]
     private float projectileSpeed = 20f;
@@ -94,7 +94,7 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
-    // Initialisiert Referenzen und Startwerte.
+    // Initialisiert Referenzen, Startzustand, Health und Materialien fuer den Treffer-Blink.
     private void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
@@ -123,7 +123,6 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
-    // Aktualisiert die Logik in jedem Frame.
     private void Update()
     {
         EnsurePlayerReference();
@@ -145,7 +144,7 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
-    // Stellt sicher, dass PlayerReference vorhanden ist.
+    // Sucht den Spieler über Tag, falls keine direkte Referenz gesetzt wurde.
     private void EnsurePlayerReference()
     {
         if (playerTransform != null)
@@ -160,7 +159,7 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
-    // Enthaelt die Logik fuer UpdateSearching.
+    // Patrol-/Suchlogik: wartet, wählt Zufallspunkte und wechselt bei Sichtkontakt in Chasing.
     private void UpdateSearching()
     {
         if (CanSeePlayerInDetectionRange())
@@ -209,7 +208,7 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
-    // Setzt den Wert oder Zustand fuer NextSearchDestination.
+    // Setzt ein neues zufälliges NavMesh-Ziel rund um den Search-Center.
     private void SetNextSearchDestination()
     {
         Vector3 randomPoint = searchCenter + Random.insideUnitSphere * searchRadius;
@@ -219,7 +218,7 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
-    // Enthaelt die Logik fuer UpdateChasing.
+    // Verfolgt den Spieler, solange er im Detection-Bereich ist, und wechselt bei Nähe in Attacking.
     private void UpdateChasing()
     {
         if (playerTransform == null)
@@ -249,7 +248,7 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
-    // Enthaelt die Logik fuer UpdateAttacking.
+    // Stoppt Bewegung für Kampf, richtet den Gegner zum Spieler aus und startet Nahkampf oder Schuss-Burst.
     private void UpdateAttacking()
     {
         if (playerTransform == null)
@@ -285,7 +284,7 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
-    // Prueft Bedingungen und fuehrt MeleeAttack nur bei Erfolg aus.
+    // Verursacht in festem Intervall Nahkampfschaden am Spieler.
     private void TryMeleeAttack()
     {
         if (Time.time < nextMeleeHitTime)
@@ -303,7 +302,7 @@ public class EnemyAI : MonoBehaviour
         nextMeleeHitTime = Time.time + timeBetweenMeleeHits;
     }
 
-    // Liefert PlayerHealth zurueck.
+    // Cached den PlayerHealth-Zugriff, um wiederholte GetComponent-Calls zu vermeiden.
     private PlayerHealth GetPlayerHealth()
     {
         if (cachedPlayerHealth != null)
@@ -325,7 +324,7 @@ public class EnemyAI : MonoBehaviour
         return cachedPlayerHealth;
     }
 
-    // Enthaelt die Logik fuer UpdateRepositioning.
+    // Wartet bis das Reposition-Ziel erreicht ist und entscheidet dann zwischen Attacking oder Chasing.
     private void UpdateRepositioning()
     {
         if (playerTransform == null)
@@ -347,7 +346,7 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
-    // Prueft, ob SeePlayerInDetectionRange moeglich ist.
+    // Prüft nur die Distanz zum Spieler als einfache Sicht-/Erkennungsbedingung.
     private bool CanSeePlayerInDetectionRange()
     {
         if (playerTransform == null)
@@ -358,7 +357,7 @@ public class EnemyAI : MonoBehaviour
         return Vector3.Distance(transform.position, playerTransform.position) <= detectionRange;
     }
 
-    // Enthaelt die Logik fuer FireBurstRoutine.
+    // Schießt eine kurze Burst-Serie, danach repositioniert sich der Gegner für Bewegung im Kampf.
     private IEnumerator FireBurstRoutine()
     {
         burstRoutineRunning = true;
@@ -384,7 +383,7 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
-    // Enthaelt die Logik fuer FireSingleShot.
+    // Erzeugt ein Projektil in Richtung Spieler und übergibt Geschwindigkeit/Freund-Tag.
     private void FireSingleShot()
     {
         if (projectilePrefab == null || playerTransform == null)
@@ -399,7 +398,7 @@ public class EnemyAI : MonoBehaviour
         projectile.Launch(direction, projectileSpeed, gameObject.tag, transform.root);
     }
 
-    // Startet Reposition.
+    // Wählt seitliches Ausweichziel auf dem NavMesh, um nach Burst nicht statisch stehenzubleiben.
     private void StartReposition()
     {
         if (playerTransform == null)
@@ -432,7 +431,7 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
-    // Enthaelt die Logik fuer FaceTarget.
+    // Dreht den Gegner weich auf die Zielposition (nur um die Y-Achse).
     private void FaceTarget(Vector3 targetPosition)
     {
         Vector3 flatDirection = targetPosition - transform.position;
@@ -447,7 +446,7 @@ public class EnemyAI : MonoBehaviour
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 12f);
     }
 
-    // Prueft Bedingungen und fuehrt GetNavMeshPoint nur bei Erfolg aus.
+    // Sucht den nächsten gültigen Punkt auf dem NavMesh für sichere Agent-Ziele.
     private bool TryGetNavMeshPoint(Vector3 position, float maxDistance, out Vector3 navPoint)
     {
         if (NavMesh.SamplePosition(position, out NavMeshHit hit, maxDistance, NavMesh.AllAreas))
@@ -460,13 +459,13 @@ public class EnemyAI : MonoBehaviour
         return false;
     }
 
-    // Prueft, ob UseAgent moeglich ist.
+    // Schützt NavMesh-Aufrufe, falls Agent deaktiviert ist oder nicht auf dem NavMesh steht.
     private bool CanUseAgent()
     {
         return agent != null && agent.isActiveAndEnabled && agent.isOnNavMesh;
     }
 
-    // Enthaelt die Logik fuer TakeDamage.
+    // Reduziert Health, triggert Treffer-Feedback und zerstört den Gegner bei 0 HP.
     public void TakeDamage(int amount)
     {
         currentHealth -= amount;
@@ -477,7 +476,7 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
-    // Enthaelt die Logik fuer TriggerHitBlink.
+    // Startet den kurzen Hit-Blink und ersetzt ggf. einen bereits laufenden Blink.
     private void TriggerHitBlink()
     {
         if (blinkMaterials == null || blinkMaterials.Length == 0)
@@ -493,7 +492,7 @@ public class EnemyAI : MonoBehaviour
         hitBlinkRoutine = StartCoroutine(HitBlinkRoutine());
     }
 
-    // Enthaelt die Logik fuer HitBlinkRoutine.
+    // Setzt Materialfarbe kurz auf Hit-Farbe
     private IEnumerator HitBlinkRoutine()
     {
         for (int i = 0; i < blinkMaterials.Length; i++)
@@ -517,7 +516,7 @@ public class EnemyAI : MonoBehaviour
         hitBlinkRoutine = null;
     }
 
-    // Zeichnet Debug-Gizmos fuer die ausgewaehlte Komponente.
+    // Visualisiert Detection- und Attack-Range im Editor für schnelleres Tuning.
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.yellow;

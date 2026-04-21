@@ -12,7 +12,6 @@ public class PlayerHealthHUD : MonoBehaviour
 
     private float targetFill = 1f;
 
-    // Registriert Events und aktiviert benoetigte Eingaben.
     private void OnEnable()
     {
         if (playerHealth != null)
@@ -22,7 +21,6 @@ public class PlayerHealthHUD : MonoBehaviour
         }
     }
 
-    // Entfernt Event-Registrierungen und deaktiviert Eingaben.
     private void OnDisable()
     {
         if (playerHealth != null)
@@ -31,7 +29,6 @@ public class PlayerHealthHUD : MonoBehaviour
         }
     }
 
-    // Aktualisiert die Logik in jedem Frame.
     private void Update()
     {
         if (!smoothFill || healthFillImage == null)
@@ -42,7 +39,7 @@ public class PlayerHealthHUD : MonoBehaviour
         healthFillImage.fillAmount = Mathf.Lerp(healthFillImage.fillAmount, targetFill, Time.deltaTime * fillLerpSpeed);
     }
 
-    // Setzt den Wert oder Zustand fuer PlayerHealth.
+    // Setzt den Wert oder Zustand für PlayerHealth.
     public void SetPlayerHealth(PlayerHealth newPlayerHealth)
     {
         if (playerHealth != null)
@@ -59,7 +56,6 @@ public class PlayerHealthHUD : MonoBehaviour
         }
     }
 
-    // Aktualisiert Instant.
     private void RefreshInstant()
     {
         if (playerHealth == null)

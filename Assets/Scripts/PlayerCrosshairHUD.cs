@@ -6,13 +6,12 @@ public class PlayerCrosshairHUD : MonoBehaviour
     [SerializeField] private GameObject defaultCrosshair;
     private bool hadWeaponLastFrame;
 
-    // Aktualisiert die Logik in jedem Frame.
     private void Update()
     {
         RefreshCrosshair();
     }
 
-    // Setzt den Wert oder Zustand fuer WeaponManager.
+    // Setzt den Wert oder Zustand für WeaponManager.
     public void SetWeaponManager(WeaponManager newWeaponManager)
     {
         weaponManager = newWeaponManager;

@@ -25,7 +25,6 @@ public class PlayerGameOverController : MonoBehaviour
         }
     }
 
-    // Registriert den Death-Event-Listener beim Aktivieren des Objekts.
     private void OnEnable()
     {
         if (playerHealth != null)
@@ -34,7 +33,6 @@ public class PlayerGameOverController : MonoBehaviour
         }
     }
 
-    // Entfernt den Death-Event-Listener beim Deaktivieren des Objekts.
     private void OnDisable()
     {
         if (playerHealth != null)
@@ -43,7 +41,7 @@ public class PlayerGameOverController : MonoBehaviour
         }
     }
 
-    // Reagiert auf den Tod des Spielers: pausiert das Spiel und zeigt das GameOver-Panel.
+    // Player dead -> pausiert das Spiel und zeigt das GameOver-Panel.
     private void HandlePlayerDeath()
     {
         if (handledDeath)
@@ -67,14 +65,14 @@ public class PlayerGameOverController : MonoBehaviour
         Cursor.lockState = CursorLockMode.None;
     }
 
-    // LÃ¤dt das aktuelle Level neu und hebt vorher die Pause auf.
+    // Lädt das aktuelle Level neu und hebt Pause auf.
     public void RestartLevel()
     {
         Time.timeScale = 1f;
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
-    // LÃ¤dt das HauptmenÃ¼ und hebt vorher die Pause auf.
+    // Lädt das Hauptmenü und hebt Pause auf.
     public void LoadMainMenu(string sceneName = "MainMenu")
     {
         Time.timeScale = 1f;

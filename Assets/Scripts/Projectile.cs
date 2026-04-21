@@ -15,19 +15,16 @@ public class Projectile : MonoBehaviour
     private Transform ownerRoot;
     public string OwnerTag => ownerTag;
 
-    // Initialisiert Referenzen und Startwerte.
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
     }
 
-    // Registriert Events und aktiviert benoetigte Eingaben.
     private void OnEnable()
     {
         Destroy(gameObject, lifetime);
     }
 
-    // Enthaelt die Logik fuer Launch.
     public void Launch(Vector3 direction, float speed, string sourceTag, Transform sourceRoot)
     {
         ownerTag = sourceTag;
@@ -37,13 +34,11 @@ public class Projectile : MonoBehaviour
         rb.linearVelocity = normalizedDirection * speed;
     }
 
-    // Reagiert auf Kollisionen mit anderen Objekten.
     private void OnCollisionEnter(Collision collision)
     {
         HandleHit(collision.collider);
     }
 
-    // Reagiert auf Trigger-Eintritte.
     private void OnTriggerEnter(Collider other)
     {
         HandleHit(other);

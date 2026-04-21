@@ -21,7 +21,6 @@ public class PlayerHealth : MonoBehaviour
     public int MaxHealth => maxHealth;
     public bool IsDead => isDead;
 
-    // Initialisiert Referenzen und Startwerte.
     private void Awake()
     {
         currentHealth = maxHealth;
@@ -29,19 +28,18 @@ public class PlayerHealth : MonoBehaviour
         NotifyHealthChanged();
     }
 
-    // Reagiert auf Kollisionen mit anderen Objekten.
     private void OnCollisionEnter(Collision collision)
     {
         TryTakeBulletDamage(collision.collider);
     }
 
-    // Reagiert auf Trigger-Eintritte.
+
     private void OnTriggerEnter(Collider other)
     {
         TryTakeBulletDamage(other);
     }
 
-    // Prueft Bedingungen und fuehrt TakeBulletDamage nur bei Erfolg aus.
+    // Prüft Bedingungen und führt TakeBulletDamage bei Erfolg aus.
     private void TryTakeBulletDamage(Collider hitCollider)
     {
         if (hitCollider == null)
@@ -63,7 +61,7 @@ public class PlayerHealth : MonoBehaviour
         TakeDamage(damagePerEnemyBullet);
     }
 
-    // Enthaelt die Logik fuer TakeDamage.
+    // Verarbeitet den erlittenen Schaden, spielt Sound ab und löst Events aus.
     public void TakeDamage(int amount)
     {
         if (amount <= 0 || isDead)
@@ -94,12 +92,11 @@ public class PlayerHealth : MonoBehaviour
 
     }
 
-    // Enthaelt die Logik fuer Heal.
-    public void Heal(int amount)
+    public bool Heal(int amount)
     {
-        if (amount <= 0 || currentHealth <= 0)
+        if (amount <= 0 || currentHealth <= 0 || currentHealth >= maxHealth)
         {
-            return;
+            return false;
         }
 
         currentHealth += amount;
@@ -110,9 +107,10 @@ public class PlayerHealth : MonoBehaviour
 
         NotifyHealthChanged();
 
+        return true;
+
     }
 
-    // Informiert andere Systeme ueber HealthChanged.
     private void NotifyHealthChanged()
     {
         HealthChanged?.Invoke(currentHealth, maxHealth);

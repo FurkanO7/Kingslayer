@@ -53,7 +53,6 @@ public class PlayerShooter : MonoBehaviour
         }
     }
 
-    // Initialisiert Referenzen und Startwerte.
     private void Awake()
     {
         if (shootAudioSource == null)
@@ -73,7 +72,6 @@ public class PlayerShooter : MonoBehaviour
         CacheSelfColliders();
     }
 
-    // Aktualisiert die Logik in jedem Frame.
     private void Update()
     {
         if (IsPlayerDead())
@@ -95,7 +93,6 @@ public class PlayerShooter : MonoBehaviour
         }
     }
 
-    // Registriert Events und aktiviert benoetigte Eingaben.
     private void OnEnable()
     {
         if (shootAction != null)
@@ -116,7 +113,6 @@ public class PlayerShooter : MonoBehaviour
         }
     }
 
-    // Entfernt Event-Registrierungen und deaktiviert Eingaben.
     private void OnDisable()
     {
         if (shootAction != null)
@@ -137,19 +133,17 @@ public class PlayerShooter : MonoBehaviour
         }
     }
 
-    // Enthaelt die Logik fuer OnMeleePerformed.
     private void OnMeleePerformed(InputAction.CallbackContext context)
     {
         TryMelee();
     }
 
-    // Enthaelt die Logik fuer OnReloadPerformed.
     private void OnReloadPerformed(InputAction.CallbackContext context)
     {
         TryManualReload();
     }
 
-    // Prueft Bedingungen und fuehrt ManualReload nur bei Erfolg aus.
+    // Spieler reloaded manuell
     private void TryManualReload()
     {
         if (isReloading || weaponManager == null)
@@ -175,7 +169,6 @@ public class PlayerShooter : MonoBehaviour
         PlayReloadSound(equippedWeapon);
     }
 
-    // Prueft Bedingungen und fuehrt Shoot nur bei Erfolg aus.
     private void TryShoot()
     {
         if (IsPlayerDead())
@@ -183,7 +176,7 @@ public class PlayerShooter : MonoBehaviour
             return;
         }
 
-        // PrÃ¼fe ob Waffe ausgerÃ¼stet ist
+        // Prüfe ob Waffe ausgerüstet ist
         if (weaponManager == null || !weaponManager.HasWeaponEquipped)
         {
             return;
@@ -246,7 +239,6 @@ public class PlayerShooter : MonoBehaviour
         }
     }
 
-    // Prueft Bedingungen und fuehrt Melee nur bei Erfolg aus.
     private void TryMelee()
     {
         if (Time.time < nextMeleeTime)
@@ -309,7 +301,7 @@ public class PlayerShooter : MonoBehaviour
         nextMeleeTime = Time.time + meleeCooldown;
     }
 
-    // Startet ReloadIfPossible.
+    // AutoReload
     private void StartReloadIfPossible(Weapon weapon)
     {
         if (weapon == null || isReloading)
@@ -332,7 +324,7 @@ public class PlayerShooter : MonoBehaviour
         PlayReloadSound(weapon);
     }
 
-    // Schliesst Reload ab.
+    // Schließt den Reload ab.
     private void CompleteReload()
     {
         isReloading = false;
@@ -354,7 +346,6 @@ public class PlayerShooter : MonoBehaviour
         }
     }
 
-    // Enthaelt die Logik fuer ShouldIgnoreHitCollider.
     private bool ShouldIgnoreHitCollider(Collider hitCollider)
     {
         if (hitCollider == null)
@@ -380,7 +371,7 @@ public class PlayerShooter : MonoBehaviour
         return false;
     }
 
-    // Sucht den naechsten Boss im Schussbereich.
+    // Sucht den nächsten Boss im Schussbereich.
     private Boss FindBestBossTarget(Vector3 startPosition, Vector3 direction)
     {
         Boss[] bosses = FindObjectsByType<Boss>(FindObjectsSortMode.None);
@@ -409,7 +400,7 @@ public class PlayerShooter : MonoBehaviour
         return bestBoss;
     }
 
-    // Sucht nach BestShootTarget.
+    // Treffertoleranz damit Spieler nicht perfekt aimen muss. Findet gegner in sichtfeld und reichweite
     private EnemyAI FindBestShootTarget(Vector3 startPosition, Vector3 direction)
     {
         EnemyAI[] enemies = FindObjectsByType<EnemyAI>(FindObjectsSortMode.None);
@@ -452,7 +443,7 @@ public class PlayerShooter : MonoBehaviour
         return bestEnemy;
     }
 
-    // Prueft den Zustand: ObstacleBlockingShot.
+    //guckt ob obstacle im weg ist, damit Spieler nicht durch Wände schießen kann
     private bool IsObstacleBlockingShot(Vector3 startPosition, Vector3 targetPosition, EnemyAI targetEnemy)
     {
         Vector3 directionToTarget = targetPosition - startPosition;
@@ -483,7 +474,6 @@ public class PlayerShooter : MonoBehaviour
         return false;
     }
 
-    // Speichert Referenzen fuer SelfColliders zwischen.
     private void CacheSelfColliders()
     {
         selfColliders.Clear();
@@ -520,7 +510,6 @@ public class PlayerShooter : MonoBehaviour
         shootAudioSource.PlayOneShot(weapon.ReloadSound, weapon.ReloadVolume);
     }
 
-    // Prueft den Zustand: PlayerDead.
     private bool IsPlayerDead()
     {
         return playerHealth != null && playerHealth.IsDead;

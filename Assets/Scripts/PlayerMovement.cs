@@ -38,7 +38,6 @@ public class PlayerMovement : MonoBehaviour
     private bool jumpPressed;
     private bool lookEnabled = true;
 
-    // Initialisiert Referenzen und Startwerte.
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
@@ -62,7 +61,6 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    // Registriert Events und aktiviert benoetigte Eingaben.
     private void OnEnable()
     {
         SceneManager.sceneLoaded += OnSceneLoaded;
@@ -100,7 +98,6 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    // Entfernt Event-Registrierungen und deaktiviert Eingaben.
     private void OnDisable()
     {
         SceneManager.sceneLoaded -= OnSceneLoaded;
@@ -134,7 +131,7 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    // Reagiert auf geladene Szenen und setzt den Cursor in Level_3 unsichtbar.
+    // Setzt den Cursor in Level_3 unsichtbar.
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         ApplyLevel3CursorState(scene.name);
@@ -172,13 +169,11 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    // Prueft, ob der Cursor in der angegebenen Szene standardmaessig verborgen sein soll.
     private bool ShouldForceHiddenCursor(string sceneName)
     {
         return sceneName == "Level_3" || sceneName == "TheRange";
     }
 
-    // Aktualisiert die Logik in jedem Frame.
     private void Update()
     {
         EnforceGameplayCursorState();
@@ -192,7 +187,6 @@ public class PlayerMovement : MonoBehaviour
         ApplyLook();
     }
 
-    // Aktualisiert physikbezogene Logik im FixedUpdate-Takt.
     private void FixedUpdate()
     {
         if (IsPlayerDead())
@@ -238,7 +232,6 @@ public class PlayerMovement : MonoBehaviour
         jumpPressed = false;
     }
 
-    // Enthaelt die Logik fuer OnMovePerformed.
     private void OnMovePerformed(InputAction.CallbackContext context)
     {
         if (IsPlayerDead())
@@ -250,7 +243,6 @@ public class PlayerMovement : MonoBehaviour
         moveInput = context.ReadValue<Vector2>();
     }
 
-    // Enthaelt die Logik fuer OnLookPerformed.
     private void OnLookPerformed(InputAction.CallbackContext context)
     {
         if (!lookEnabled)
@@ -262,19 +254,16 @@ public class PlayerMovement : MonoBehaviour
         lookInput = context.ReadValue<Vector2>();
     }
 
-    // Enthaelt die Logik fuer OnLookCanceled.
     private void OnLookCanceled(InputAction.CallbackContext context)
     {
         lookInput = Vector2.zero;
     }
 
-    // Enthaelt die Logik fuer OnMoveCanceled.
     private void OnMoveCanceled(InputAction.CallbackContext context)
     {
         moveInput = Vector2.zero;
     }
 
-    // Enthaelt die Logik fuer OnJumpPerformed.
     private void OnJumpPerformed(InputAction.CallbackContext context)
     {
         if (IsPlayerDead())
@@ -286,7 +275,6 @@ public class PlayerMovement : MonoBehaviour
         jumpPressed = true;
     }
 
-    // Wendet Look an.
     private void ApplyLook()
     {
         if (!lookEnabled)
@@ -310,7 +298,6 @@ public class PlayerMovement : MonoBehaviour
         cameraTransform.localRotation = Quaternion.Euler(pitch, 0f, 0f);
     }
 
-    // Setzt den Wert oder Zustand fuer LookEnabled.
     public void SetLookEnabled(bool isEnabled)
     {
         lookEnabled = isEnabled;
@@ -320,7 +307,7 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    // Prueft den Zustand: Grounded.
+    // Prüft, ob der Spieler den Boden berührt.
     private bool IsGrounded()
     {
         if (groundCheck == null)
@@ -331,13 +318,13 @@ public class PlayerMovement : MonoBehaviour
         return Physics.CheckSphere(groundCheck.position, groundCheckRadius, groundMask);
     }
 
-    // Prueft den Zustand: PlayerDead.
+    // Prüft, ob der Spieler tot ist.
     private bool IsPlayerDead()
     {
         return (playerHealth != null && playerHealth.IsDead) || Boss.IsVictory;
     }
 
-    // Zeichnet Debug-Gizmos fuer die ausgewaehlte Komponente.
+    // Zeichnet Debug-Gizmos für die ausgewählte Komponente.
     private void OnDrawGizmosSelected()
     {
         if (groundCheck == null)
